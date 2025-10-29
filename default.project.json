@@ -1,0 +1,30 @@
+{
+    "name": "BrainrotBattles",
+    "tree": {
+      "$className": "DataModel",
+  
+      "ReplicatedStorage": {
+        "SharedModules": {
+          "$path": "SharedModules"
+        },
+        "Utilities": {
+          "$path": "Utilities"
+        },
+        "Configurations": {
+          "$path": "Configurations"
+        }
+      },
+  
+      "ServerScriptService": {
+        "Server": {
+          "$path": "Server"
+        }
+      },
+  
+      "ReplicatedFirst": {
+        "Controllers": {
+            "$path": "Controllers"
+        }
+      }
+    }
+  }

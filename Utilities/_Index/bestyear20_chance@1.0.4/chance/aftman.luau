@@ -1,0 +1,5 @@
+return {
+	tools = {
+		wally = "UpliftGames/wally@0.3.2",
+	},
+}

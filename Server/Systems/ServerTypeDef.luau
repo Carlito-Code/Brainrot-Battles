@@ -1,0 +1,1 @@
+return "SERVER_TYPE_DEF"
