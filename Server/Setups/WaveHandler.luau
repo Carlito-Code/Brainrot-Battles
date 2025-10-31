@@ -14,6 +14,7 @@ local Entity = require(ServerScriptService.Server.Classes.Entity)
 local _Signals = require(ReplicatedStorage.SharedModules.Signals)
 local DataService = require(ReplicatedStorage.Utilities.DataService)
 local BasesService = require(script.Parent.BasesService)
+local InventoryService = require(script.Parent.InventoryService)
 
 local PlotService = require("./PlotService")
 
@@ -67,59 +68,67 @@ function WaveHandler:SpawnWave(player, waveNumber)
 	end
 end
 
-function WaveHandler.SpawnDefender(player, entityName)
+function WaveHandler.SpawnDefender(player, guid)
 	-- Validate entity name exists in Brainrots configuration
-	if not Brainrots[entityName] then
-		warn("Invalid entity name: " .. tostring(entityName))
-		return false, "Invalid entity name"
+	if not DataService.server:get(player, {"equipped", guid}) then
+		return false, "Brainrot not equipped"
 	end
 
-	-- Runtime energy check
-	local state = PlayerState[player]
-	if not state then
-		return false, "Wave system not started"
+	local brainrotData = DataService.server:get(player, {"inventory", guid})
+
+	if brainrotData then
+		local entityName = brainrotData.Name
+		if not Brainrots[entityName] then
+			warn("Invalid entity name: " .. tostring(entityName))
+			return false, "Invalid entity name"
+		end
+	
+		-- Runtime energy check
+		local state = PlayerState[player]
+		if not state then
+			return false, "Wave system not started"
+		end
+		local cost = Brainrots[entityName].EnergyCost or 0
+		if state.energy < cost then
+			return false, "Not enough energy"
+		end
+	
+		-- Unit limit check
+		local maxUnits = DataService.server:get(player, { "maxUnitsOnField" })
+		local defenders = Entity.GetEntitiesOfType(player, false)
+		if #defenders >= maxUnits then
+			return false, "Maximum defenders reached"
+		end
+	
+		-- Consume runtime energy
+		state.energy -= cost
+	
+		-- Get spawn position from HomeSpawnLine
+		local PlayerPlot = PlotService.getPlot(player)
+		local HomeSpawnLine = PlayerPlot:FindFirstChild("HomeSpawnLine")
+		if not HomeSpawnLine then
+			warn("Could not find HomeSpawnLine in plot for player " .. player.Name)
+			return false, "No spawn line found"
+		end
+	
+		local rng = Random.new()
+		local RandomPosition = HomeSpawnLine.Position
+			+ Vector3.new(
+				rng:NextNumber(-HomeSpawnLine.Size.X / 2, HomeSpawnLine.Size.X / 2),
+				0,
+				HomeSpawnLine.Size.Z / 2 + 1
+			)
+	
+		-- Create the actual defender entity
+		local defenderEntity = Entity.new(guid, entityName, player, false, false)
+	
+		-- Spawn the defender at the calculated position
+		local spawnCf = CFrame.new(RandomPosition)
+		defenderEntity:Spawn(spawnCf)
+	
+		print("Successfully spawned defender " .. entityName .. " for player " .. player.Name)
+		return true, "Defender spawned successfully"
 	end
-	local cost = Brainrots[entityName].EnergyCost or 0
-	if state.energy < cost then
-		return false, "Not enough energy"
-	end
-
-	-- Unit limit check
-	local maxUnits = DataService.server:get(player, { "maxUnitsOnField" })
-	local defenders = Entity.GetEntitiesOfType(player, false)
-	if #defenders >= maxUnits then
-		return false, "Maximum defenders reached"
-	end
-
-	-- Consume runtime energy
-	state.energy -= cost
-
-	-- Get spawn position from HomeSpawnLine
-	local PlayerPlot = PlotService.getPlot(player)
-	local HomeSpawnLine = PlayerPlot:FindFirstChild("HomeSpawnLine")
-	if not HomeSpawnLine then
-		warn("Could not find HomeSpawnLine in plot for player " .. player.Name)
-		return false, "No spawn line found"
-	end
-
-	local rng = Random.new()
-	local RandomPosition = HomeSpawnLine.Position
-		+ Vector3.new(
-			rng:NextNumber(-HomeSpawnLine.Size.X / 2, HomeSpawnLine.Size.X / 2),
-			0,
-			HomeSpawnLine.Size.Z / 2 + 1
-		)
-
-	-- Create the actual defender entity
-	local Http = game:GetService("HttpService")
-	local defenderEntity = Entity.new(Http:GenerateGUID(), entityName, player, false, false)
-
-	-- Spawn the defender at the calculated position
-	local spawnCf = CFrame.new(RandomPosition)
-	defenderEntity:Spawn(spawnCf)
-
-	print("Successfully spawned defender " .. entityName .. " for player " .. player.Name)
-	return true, "Defender spawned successfully"
 end
 
 function WaveHandler.StartWaveSystem(player: Player)
@@ -205,13 +214,14 @@ function WaveHandler.Init()
 	-- Connect the SpawnEntity remote event
 	local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 
-	Remotes.SpawnEntity.OnServerEvent:Connect(function(player, entityName)
-		local success, message = WaveHandler.SpawnDefender(player, entityName)
-
+	Remotes.SpawnEntity.OnServerEvent:Connect(function(player, guid)
+		-- local success, message = WaveHandler.SpawnDefender(player, guid)
+		WaveHandler.SpawnDefender(player, guid)
 		-- You could send feedback to the client here if needed
-		if not success then
-			warn("Failed to spawn defender for " .. player.Name .. ": " .. message)
-		end
+		-- if not success then
+		-- 	warn(message)
+		-- 	-- warn("Failed to spawn defender for " .. player.Name .. ": " .. message)
+		-- end
 	end)
 
 	-- Connect StartWaveSystem remote event
@@ -226,6 +236,14 @@ function WaveHandler.Init()
 		local plot = PlotService.getPlot(player)
 		if not plot then
 			warn("Player " .. player.Name .. " does not have a plot")
+			return
+		end
+
+		-- CHeck if player has a brainrot equipped
+		local numEquippedBrainrots = InventoryService.GetNumberOfEquippedBrainrots(player)
+
+		if numEquippedBrainrots == 0 then
+			warn("Player " .. player.Name .. " does not have any brainrots equipped")
 			return
 		end
 
@@ -246,8 +264,8 @@ function WaveHandler.Init()
 	local Players = game:GetService("Players")
 
 	Players.PlayerAdded:Connect(function(player)
-		task.wait(7)
-		WaveHandler.StartWaveSystem(player)
+		-- task.wait(7)
+		-- WaveHandler.StartWaveSystem(player)
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)

@@ -115,7 +115,7 @@ function EntityClass.FindClosestEntity(CurrentCf, Player, Enemy)
 end
 
 function EntityClass:GetData(): DataTemplate.DataBrainrot
-	return DataService.server:get(self.owner, { "equipped", self.id })
+	return DataService.server:get(self.owner, { "inventory", self.id })
 end
 
 function EntityClass.GetConfigurationData(self: class): Brainrots.Brainrot
@@ -127,7 +127,7 @@ function EntityClass.GetMaxedHealth(self: class)
 	if self.isEnemy then
 		return startingHealth * WaveMultiplierFunction(self.currentWave)
 	else
-		return startingHealth * MultiplierFunction(EntityClass:GetData().Level)
+		return startingHealth * MultiplierFunction(self:GetData().Level)
 	end
 end
 
@@ -136,7 +136,7 @@ function EntityClass.AttachCallbackToSignal(self: class, cb)
 end
 
 function EntityClass.GiveExp(self: class, Amount)
-	DataService.server:update(self.owner, { "equipped", self.id }, function(old: DataTemplate.DataBrainrot)
+	DataService.server:update(self.owner, { "inventory", self.id }, function(old: DataTemplate.DataBrainrot)
 		local clonedData = table.clone(old)
 		local newAmount = old.Xp + Amount
 		if newAmount >= LevelCapFunction(old.Level) then
@@ -238,7 +238,7 @@ function EntityClass.GetDamage(self: class)
 	if self.isEnemy then
 		return attackDmg * WaveMultiplierFunction(self.currentWave)
 	else
-		return attackDmg * MultiplierFunction(EntityClass:GetData().Level)
+		return attackDmg * MultiplierFunction(self:GetData().Level)
 	end
 end
 

@@ -12,6 +12,9 @@
         },
         "Configurations": {
           "$path": "Configurations"
+        },
+        "Types": {
+          "$path": "Types"
         }
       },
   

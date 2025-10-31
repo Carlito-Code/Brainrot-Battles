@@ -12,4 +12,7 @@ return {
 	PurchaseStarted = TypedRemote.event("PurchaseStarted"),
 	PurchaseEnded = TypedRemote.event("PurchaseEnded"),
 	PromptPurchase = TypedRemote.func("PromptPurchase"),
+	InventoryEntryAdded = TypedRemote.event("InventoryEntryAdded"),
+	InventoryEntryEquipped = TypedRemote.event("InventoryEntryEquipped"),
+	InventorySpawn = TypedRemote.event("InventorySpawn"),
 }

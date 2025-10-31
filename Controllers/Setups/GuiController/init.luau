@@ -3,14 +3,19 @@ local collectionService = game:GetService("CollectionService")
 local replicatedFirst = game:GetService("ReplicatedFirst")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
+local DataService = require(replicatedStorage.Utilities.DataService).client
+
 local lPlayer = players.LocalPlayer
 local gui = lPlayer.PlayerGui:WaitForChild("MainGui")
 local animationsHandler = require(replicatedFirst.Controllers.Bindings.Animations)
 local registry = require(script.Registry)
+local bottom = require(script.Bottom)
+local top = require(script.Top)
 
 local guiHandler = {}
 local framesContainer = gui.Frames
 local xButtonName = "X"
+
 
 function guiHandler.handleFrame(frame: Frame)
 	local closeButton = frame:FindFirstChild(xButtonName, true)
@@ -45,7 +50,7 @@ function guiHandler.handleFrame(frame: Frame)
 end
 
 function guiHandler.init()
-	animationsHandler.new("MainGui")
+	DataService:init()
 
 	for _, frame in framesContainer:GetChildren() do
 		guiHandler.handleFrame(frame)
@@ -64,6 +69,9 @@ function guiHandler.init()
 			end
 		end
 	end
+
+	bottom.Init(gui.Bottom)
+	top.Init(gui.Top)
 end
 
 return guiHandler
