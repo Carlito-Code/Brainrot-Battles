@@ -39,6 +39,7 @@ export type BasicClass = {
 	diedSignal: Signal.Signal<()>,
 	movingCycle: thread?,
 	alive: boolean,
+	attacking: boolean,
 	checkingConnection: thread?,
 }
 export type class = typeof(setmetatable({} :: BasicClass, EntityClass))
@@ -256,13 +257,17 @@ end
 function EntityClass.StartMovingCycle(self: class)
 	self.movingCycle = task.spawn(function()
 		while true do
+			task.wait(0.15)
 			if not self.alive then
 				break
 			end
 
+			if self.attacking then
+				continue
+			end
+
 			local _CurrentTarget = self.target
 			self:TargetTo(self:GetAroundPositionsForTarget())
-			task.wait(0.15)
 		end
 	end)
 end
@@ -279,18 +284,25 @@ function EntityClass.StartCheckingForOpposite(self: class)
 			if ClosestEnemy and distance then
 				if self.target ~= ClosestEnemy then
 					self.target = ClosestEnemy
+					self.attacking = false
 				end
 				if distance <= DistanceToTarget then
+					self.attacking = true
 					self:DamageTarget()
 				end
 			else
 				-- No enemy found, target opposite base
-				local enemyBase = BasesService.getEnemyBase(self.owner)
+				local enemyBase = if self.isEnemy
+					then BasesService.getDefenderBase(self.owner)
+					else BasesService.getEnemyBase(self.owner)
 				if enemyBase and enemyBase.model then
 					self.target = enemyBase :: any
 					local baseDistance = (enemyBase.model:GetPivot().Position - self.model:GetPivot().Position).Magnitude
 					if baseDistance <= DistanceToTarget then
+						self.attacking = true
 						self:DamageTarget()
+					else
+						self.attacking = false
 					end
 				end
 			end
@@ -343,7 +355,7 @@ function EntityClass.new(Id: string, BrainrotName: string, Owner: Player, IsEnem
 		Entities[Owner] = {}
 	end
 
-	table.insert(Entities[Owner], self)
+	Entities[Owner][Id] = self
 
 	return self
 end

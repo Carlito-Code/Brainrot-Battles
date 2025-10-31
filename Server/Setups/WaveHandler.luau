@@ -70,11 +70,13 @@ end
 
 function WaveHandler.SpawnDefender(player, guid)
 	-- Validate entity name exists in Brainrots configuration
-	if not DataService.server:get(player, {"equipped", guid}) then
+	if not DataService.server:get(player, { "equipped", guid }) then
 		return false, "Brainrot not equipped"
 	end
 
-	local brainrotData = DataService.server:get(player, {"inventory", guid})
+	print(player, guid)
+
+	local brainrotData = DataService.server:get(player, { "equipped", guid })
 
 	if brainrotData then
 		local entityName = brainrotData.Name
@@ -82,7 +84,7 @@ function WaveHandler.SpawnDefender(player, guid)
 			warn("Invalid entity name: " .. tostring(entityName))
 			return false, "Invalid entity name"
 		end
-	
+
 		-- Runtime energy check
 		local state = PlayerState[player]
 		if not state then
@@ -92,17 +94,17 @@ function WaveHandler.SpawnDefender(player, guid)
 		if state.energy < cost then
 			return false, "Not enough energy"
 		end
-	
+
 		-- Unit limit check
 		local maxUnits = DataService.server:get(player, { "maxUnitsOnField" })
 		local defenders = Entity.GetEntitiesOfType(player, false)
 		if #defenders >= maxUnits then
 			return false, "Maximum defenders reached"
 		end
-	
+
 		-- Consume runtime energy
 		state.energy -= cost
-	
+
 		-- Get spawn position from HomeSpawnLine
 		local PlayerPlot = PlotService.getPlot(player)
 		local HomeSpawnLine = PlayerPlot:FindFirstChild("HomeSpawnLine")
@@ -110,7 +112,7 @@ function WaveHandler.SpawnDefender(player, guid)
 			warn("Could not find HomeSpawnLine in plot for player " .. player.Name)
 			return false, "No spawn line found"
 		end
-	
+
 		local rng = Random.new()
 		local RandomPosition = HomeSpawnLine.Position
 			+ Vector3.new(
@@ -118,14 +120,14 @@ function WaveHandler.SpawnDefender(player, guid)
 				0,
 				HomeSpawnLine.Size.Z / 2 + 1
 			)
-	
+
 		-- Create the actual defender entity
 		local defenderEntity = Entity.new(guid, entityName, player, false, false)
-	
+
 		-- Spawn the defender at the calculated position
 		local spawnCf = CFrame.new(RandomPosition)
 		defenderEntity:Spawn(spawnCf)
-	
+
 		print("Successfully spawned defender " .. entityName .. " for player " .. player.Name)
 		return true, "Defender spawned successfully"
 	end
@@ -216,7 +218,8 @@ function WaveHandler.Init()
 
 	Remotes.SpawnEntity.OnServerEvent:Connect(function(player, guid)
 		-- local success, message = WaveHandler.SpawnDefender(player, guid)
-		WaveHandler.SpawnDefender(player, guid)
+		local bool, whatToPrint = WaveHandler.SpawnDefender(player, guid)
+		warn(whatToPrint)
 		-- You could send feedback to the client here if needed
 		-- if not success then
 		-- 	warn(message)

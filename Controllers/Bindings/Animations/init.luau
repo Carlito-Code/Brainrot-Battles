@@ -3,7 +3,7 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --// Settings
 local AnimationSettings = require(script.Settings)
@@ -25,6 +25,7 @@ local Roations = {
 local ImageDarkerwhenHovering = AnimationSettings.ImageDarkerWhenHovered
 
 local AnimationFunctions = {}
+AnimationFunctions.__index = AnimationFunctions
 
 type FrameType = typeof({
 	State = false,
@@ -33,12 +34,16 @@ type FrameType = typeof({
 	ClosedPosition = UDim2.new(XPosition, YPosition),
 	OC = function() end,
 	PSpring = Spring.new(YPosition.Scale, AnimationSettings.SpringInfo.Damping, AnimationSettings.SpringInfo.Speed),
-	SSpring = Spring.new(AnimationSettings.ClosedSize, AnimationSettings.SpringInfo.Damping, AnimationSettings.SpringInfo.Speed),
+	SSpring = Spring.new(
+		AnimationSettings.ClosedSize,
+		AnimationSettings.SpringInfo.Damping,
+		AnimationSettings.SpringInfo.Speed
+	),
 	OpenSignal = Signal.new(),
-	CloseSignal = Signal.new()
+	CloseSignal = Signal.new(),
 })
 
-local Frames = {} :: {FrameType}
+local Frames = {} :: { FrameType }
 local ButtonsContainer = nil
 local Player = Players.LocalPlayer
 
@@ -49,7 +54,9 @@ local NewBlur = nil
 local TEXTLABELS_CACHES = {}
 
 function AnimationFunctions:GetTextLabel(labelName: string | TextLabel)
-	if labelName:IsA("TextLabel") then return labelName end
+	if labelName:IsA("TextLabel") then
+		return labelName
+	end
 	local label = TEXTLABELS_CACHES[labelName]
 	if not label then
 		label = ButtonsContainer:FindFirstChild(labelName, true)
@@ -64,7 +71,7 @@ end
 
 function AnimationFunctions:SetText(TextLabelName: string, text: string)
 	local label = AnimationFunctions:GetTextLabel(TextLabelName)
-	
+
 	if label then
 		TextLabelName.Text = text
 	end
@@ -175,9 +182,9 @@ end
 
 function AnimationFunctions:OpenFrame(FrameInstance)
 	AnimationFunctions:CloseAllFrames()
-	
+
 	local Informations = Frames[FrameInstance.Name]
-	
+
 	task.defer(function()
 		--// Handling the frame in case it doesn't exist inside of the frames table
 		if not Informations then
@@ -235,7 +242,7 @@ function AnimationFunctions:CloseFrame(FrameInstance, CloseBlur)
 	if CloseBlur == nil then
 		CloseBlur = true
 	end
-	
+
 	local Informations = Frames[FrameInstance.Name]
 
 	task.defer(function()
@@ -247,7 +254,7 @@ function AnimationFunctions:CloseFrame(FrameInstance, CloseBlur)
 		if Informations.State == false then
 			return
 		end
-		
+
 		Informations.CloseSignal:Fire()
 
 		Informations.State = false
@@ -311,7 +318,7 @@ function AnimationFunctions:SetupFrameInSelf(FrameInstance, OpeningCallback, Ove
 	else
 		YPosition = AnimationSettings.FramePositionWhenClosedY
 	end
-	
+
 	local FrameSize: UDim2 = FrameInstance.Size
 
 	local info = {
@@ -320,24 +327,40 @@ function AnimationFunctions:SetupFrameInSelf(FrameInstance, OpeningCallback, Ove
 		Position = FrameInstance.Position,
 		ClosedPosition = OverridePosition or UDim2.new(XPosition, YPosition),
 		OC = OpeningCallback,
-		PYSpring = Spring.new(YPosition.Scale, AnimationSettings.SpringInfo.Damping, AnimationSettings.SpringInfo.Speed),
-		PXSpring = Spring.new(XPosition.Scale, AnimationSettings.SpringInfo.Damping, AnimationSettings.SpringInfo.Speed),
-		SSpring = Spring.new(AnimationSettings.ClosedSize, AnimationSettings.SpringInfo.Damping, AnimationSettings.SpringInfo.Speed),
+		PYSpring = Spring.new(
+			YPosition.Scale,
+			AnimationSettings.SpringInfo.Damping,
+			AnimationSettings.SpringInfo.Speed
+		),
+		PXSpring = Spring.new(
+			XPosition.Scale,
+			AnimationSettings.SpringInfo.Damping,
+			AnimationSettings.SpringInfo.Speed
+		),
+		SSpring = Spring.new(
+			AnimationSettings.ClosedSize,
+			AnimationSettings.SpringInfo.Damping,
+			AnimationSettings.SpringInfo.Speed
+		),
 		OpenSignal = Signal.new(),
 		CloseSignal = Signal.new(),
 	}
 
 	Frames[FrameInstance.Name] = info
-	
+
 	RunService.RenderStepped:Connect(function()
 		FrameInstance.Position = UDim2.fromScale(info.PXSpring.Position, info.PYSpring.Position)
-		FrameInstance.Size = UDim2.fromScale(FrameSize.X.Scale * info.SSpring.Position, FrameSize.Y.Scale * info.SSpring.Position)
+		FrameInstance.Size =
+			UDim2.fromScale(FrameSize.X.Scale * info.SSpring.Position, FrameSize.Y.Scale * info.SSpring.Position)
 	end)
-	
+
 	return info
 end
 
-function AnimationFunctions:BindButtonToFrame(buttonInstance: GuiButton, FrameInstance: GuiObject): {BindToOpen: (callback) -> ()}
+function AnimationFunctions:BindButtonToFrame(
+	buttonInstance: GuiButton,
+	FrameInstance: GuiObject
+): { BindToOpen: (callback) -> () }
 	if not buttonInstance or not FrameInstance then
 		error("BindButtonToFrame Function cannot work withouth Buttoninstance or FrameInstance")
 		return
@@ -357,7 +380,7 @@ function AnimationFunctions:BindButtonToFrame(buttonInstance: GuiButton, FrameIn
 			AnimationFunctions:CloseFrame(FrameInstance)
 		end
 	end)
-	
+
 	return {
 		BindToOpen = function(callback)
 			AnimationFunctions:BindActionToFrameOpen(callback, FrameInstance)
@@ -369,14 +392,14 @@ function AnimationFunctions:BindActionToFrameClose(action, frame, argsCallback)
 	if not Frames[frame.Name] then
 		AnimationFunctions:SetupFrameInSelf(frame)
 	end
-	
+
 	local informations = nil
 	if typeof(frame) == "string" then
 		informations = Frames[frame]
 	else
 		informations = Frames[frame.Name]
 	end
-	
+
 	informations.CloseSignal:Connect(function()
 		local args = nil
 		if argsCallback then
@@ -390,8 +413,10 @@ function AnimationFunctions:BindActionToFrameOpen(action, frame, argsCallback)
 	if not Frames[frame.Name] then
 		AnimationFunctions:SetupFrameInSelf(frame)
 	end
-	
-	if not action or not frame then return end
+
+	if not action or not frame then
+		return
+	end
 	local informations = nil
 	if typeof(frame) == "string" then
 		informations = Frames[frame]

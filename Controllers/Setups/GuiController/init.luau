@@ -7,7 +7,7 @@ local DataService = require(replicatedStorage.Utilities.DataService).client
 
 local lPlayer = players.LocalPlayer
 local gui = lPlayer.PlayerGui:WaitForChild("MainGui")
-local animationsHandler = require(replicatedFirst.Controllers.Bindings.Animations)
+local animationsHandler = require(replicatedFirst.Controllers.Bindings.Animations).new("MainGui")
 local registry = require(script.Registry)
 local bottom = require(script.Bottom)
 local top = require(script.Top)
@@ -15,7 +15,6 @@ local top = require(script.Top)
 local guiHandler = {}
 local framesContainer = gui.Frames
 local xButtonName = "X"
-
 
 function guiHandler.handleFrame(frame: Frame)
 	local closeButton = frame:FindFirstChild(xButtonName, true)

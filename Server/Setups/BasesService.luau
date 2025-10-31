@@ -91,12 +91,12 @@ function BasesService.getBases(player: Player): (BaseObject, BaseObject)
 end
 
 function BasesService.getEnemyBase(player: Player): BaseObject
-	local enemy, _ = BasesService.getBases(player)
+	local _, enemy = BasesService.getBases(player)
 	return enemy
 end
 
 function BasesService.getDefenderBase(player: Player): BaseObject
-	local _, defender = BasesService.getBases(player)
+	local defender, _ = BasesService.getBases(player)
 	return defender
 end
 
