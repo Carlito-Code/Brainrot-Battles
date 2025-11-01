@@ -28,7 +28,14 @@ function Inventory.AddSlot(frame: Frame, entry: InventoryTypes.DataBrainrotInven
 	slot.NameLabel.Text = entry.dataBrainrot.Name
 
 	slot.Background.MouseButton1Click:Connect(function()
-		Inventory.EquipBrainrot(entry.guid)
+		local equippedBrainrot = DataService:get({ "equipped", entry.guid })
+
+		if equippedBrainrot then
+			print("unequipping brainrot", entry)
+			Inventory.UnequipBrainrot(entry.guid)
+		else
+			Inventory.EquipBrainrot(entry.guid)
+		end
 	end)
 
 	slot.Name = entry.guid
@@ -52,13 +59,42 @@ function Inventory.EquipBrainrot(guid: string)
 
 	slot:SetAttribute("BrainrotGUID", guid)
 
-    NextEquippableSlot += 1
+	NextEquippableSlot += 1
 
-    if NextEquippableSlot > 4 then
-        NextEquippableSlot = 1
-    end
+	if NextEquippableSlot > 4 then
+		NextEquippableSlot = 1
+	end
 
 	_Remotes.InventoryEntryEquipped:FireServer(guid, oldGuid)
+end
+
+function Inventory.UnequipBrainrot(guid: string)
+	local player = _Players.LocalPlayer
+	local bottomContainer = player.PlayerGui.MainGui.Bottom
+
+	local slot
+
+	for _, equippedSlot in bottomContainer.Slots:GetChildren() do
+		if equippedSlot:GetAttribute("BrainrotGUID") == guid then
+			slot = equippedSlot
+			break
+		end
+	end
+
+	print(slot.Name, "is the slot", guid)
+
+	if not slot then
+		return
+	end
+
+	NextEquippableSlot = tonumber(slot.name:match("%d"))
+
+	slot.Level.Text = ""
+	slot.EnergyAmount.Text = ""
+
+	slot:SetAttribute("BrainrotGUID", "")
+
+	_Remotes.InventoryEnteyUnequipped:FireServer(guid)
 end
 
 function Inventory.Init(FramesContainer: Folder)

@@ -27,6 +27,7 @@ type PlayerRuntime = {
 	bases: { defender: any, enemy: any },
 }
 
+local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 local PlayerState: { [Player]: PlayerRuntime } = {}
 
 local _IsInWave = {}
@@ -142,6 +143,7 @@ function WaveHandler.StartWaveSystem(player: Player)
 	}
 	PlayerState[player] = state
 
+	Remotes.StartWaveSystem:FireClient(player)
 	-- Hooks for base destruction
 	if defenderBase then
 		defenderBase.onDestroyed:Connect(function()
@@ -165,8 +167,8 @@ function WaveHandler.StartWaveSystem(player: Player)
 			BasesService.regenerateBases(player, state.currentWave)
 
 			-- Regenerate all current defenders' health
-			for _, def in Entity.GetEntitiesOfType(player, false) do
-				def.health = def:GetMaxedHealth()
+			for _, def in Entity.GetEntitiesOfType(player, false, true) do
+				def:Restart()
 			end
 
 			-- Spawn next wave
@@ -176,7 +178,7 @@ function WaveHandler.StartWaveSystem(player: Player)
 
 	-- player:SetAttribute("energy", state.energy)
 	-- player:SetAttribute("defenderCount", #Entity.GetEntitiesOfType(player, false))
-	
+
 	-- Start energy regen (runtime only)
 	state.regenThread = task.spawn(function()
 		while PlayerState[player] == state do
@@ -201,6 +203,8 @@ function WaveHandler.StopWaveSystem(player: Player)
 		return false, "Wave system not running"
 	end
 
+	Remotes.StopWaveSystem:FireClient(player)
+
 	-- Stop energy regeneration
 	if state.regenThread then
 		task.cancel(state.regenThread)
@@ -220,7 +224,6 @@ end
 
 function WaveHandler.Init()
 	-- Connect the SpawnEntity remote event
-	local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 
 	Remotes.SpawnEntity.OnServerEvent:Connect(function(player, guid)
 		-- local success, message = WaveHandler.SpawnDefender(player, guid)

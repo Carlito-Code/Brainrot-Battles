@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 
 local DEFAULT_SPEED_MULTIPLIERS = { 1, 1.5, 2 }
+local player = Players.LocalPlayer
 
 local Top = {}
 
@@ -26,10 +27,8 @@ local function setupConnections(frame: Frame)
 end
 
 function Top.OnAutoButtonClicked(parentFrame: Frame?, button: GuiButton)
-	local player = Players.LocalPlayer
-
 	local autoSpawnActive = player:GetAttribute("autoSpawn")
-	
+
 	if autoSpawnActive then
 		button.ActiveIcon.Visible = false
 		button.InactiveIcon.Visible = true
@@ -48,13 +47,6 @@ function Top.OnStartButtonClicked(parentFrame: Frame?, button: GuiButton)
 		return
 	end
 
-	parentFrame.StartButton.Visible = false
-	parentFrame.StopButton.Visible = true
-
-	player.PlayerGui.MainGui.Bottom.Inventory.Visible = false
-	player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = true
-	player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = true
-
 	Remotes.StartWaveSystem:FireServer(player)
 end
 
@@ -65,13 +57,6 @@ function Top.OnStopButtonClicked(parentFrame: Frame?, button: GuiButton)
 		return
 	end
 
-	parentFrame.StopButton.Visible = false
-	parentFrame.StartButton.Visible = true
-
-	player.PlayerGui.MainGui.Bottom.Inventory.Visible = true
-	player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = false
-	player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = false
-
 	Remotes.StopWaveSystem:FireServer(player)
 end
 
@@ -80,6 +65,24 @@ function Top.OnWaveSpeedMultiplierClicked(parentFrame: Frame?, button: GuiButton
 function Top.Init(topContainer: Frame)
 	-- frame:SetAttribute("WaveConfigurationsLoaded", typeof(WavesConfiguration) == "table")
 	setupConnections(topContainer)
+
+	Remotes.StopWaveSystem.OnClientEvent:Connect(function()
+		topContainer.StopButton.Visible = false
+		topContainer.StartButton.Visible = true
+
+		player.PlayerGui.MainGui.Bottom.Inventory.Visible = true
+		player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = false
+		player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = false
+	end)
+
+	Remotes.StartWaveSystem.OnClientEvent:Connect(function()
+		topContainer.StartButton.Visible = false
+		topContainer.StopButton.Visible = true
+
+		player.PlayerGui.MainGui.Bottom.Inventory.Visible = false
+		player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = true
+		player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = true
+	end)
 end
 
 return Top

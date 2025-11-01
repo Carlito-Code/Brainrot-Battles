@@ -14,6 +14,7 @@ return {
 	PromptPurchase = TypedRemote.func("PromptPurchase"),
 	InventoryEntryAdded = TypedRemote.event("InventoryEntryAdded"),
 	InventoryEntryEquipped = TypedRemote.event("InventoryEntryEquipped"),
+	InventoryEnteyUnequipped = TypedRemote.event("InventoryEntryUnequipped"),
 	InventorySpawn = TypedRemote.event("InventorySpawn"),
 
 	ToggleAutoSpawn = TypedRemote.event("ToggleAutoSpawn"),

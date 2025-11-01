@@ -23,7 +23,7 @@ local HealthBarUtil = require(ServerScriptService.Server.Systems.HealthBarUtil)
 local EntityClass = {}
 EntityClass.__index = EntityClass
 
-local DistanceToTarget = 5
+local DistanceToTarget = 7
 
 local Entities = {}
 
@@ -42,6 +42,7 @@ export type BasicClass = {
 	alive: boolean,
 	attacking: boolean,
 	checkingConnection: thread?,
+	SpawnCf: CFrame,
 }
 export type class = typeof(setmetatable({} :: BasicClass, EntityClass))
 
@@ -58,22 +59,28 @@ function EntityClass.GetTargetsOfId(Player, Id)
 	return count
 end
 
-function EntityClass.GetEntitiesOfType(Player, Enemy)
+function EntityClass.GetEntitiesOfType(Player, Enemy, p)
 	local t = Entities[Player]
 	local entities = {}
 
 	if not t then
 		return entities
 	end
-	
+
 	for _, informations in t do
 		if Enemy then
 			if informations.isEnemy then
 				table.insert(entities, informations)
+				if p then
+					print("Getting enemy")
+				end
 			end
 		else
 			if not informations.isEnemy then
 				table.insert(entities, informations)
+				if p then
+					print("Getting defender")
+				end
 			end
 		end
 	end
@@ -233,11 +240,11 @@ function EntityClass.GetAroundPositionsForTarget(self: class)
 	end
 	local _EntitiesForTarget = EntityClass.GetTargetsOfId(self.owner, self.target.id)
 	-- TODO: implement circle orientation around target
-	return self.target.model:GetPivot() * CFrame.new(0, 0, -4)
+	return self.target.model:GetPivot()
 end
 
-function EntityClass.Restart(self: class, SpawnCf)
-	self.model:PivotTo(SpawnCf)
+function EntityClass.Restart(self: class)
+	self.model:PivotTo(self.SpawnCf)
 end
 
 function EntityClass.GetDamage(self: class)
@@ -255,6 +262,11 @@ function EntityClass.TargetTo(self: class, cf: CFrame)
 		return
 	end
 	local humanoid = self.model:FindFirstChildOfClass("Humanoid")
+	if cf == nil then
+		humanoid:MoveTo(self.model:GetPivot().Position)
+		return
+	end
+
 	if humanoid and cf then
 		humanoid:MoveTo(cf.Position)
 	end
@@ -269,6 +281,7 @@ function EntityClass.StartMovingCycle(self: class)
 			end
 
 			if self.attacking then
+				self:TargetTo()
 				continue
 			end
 
@@ -295,6 +308,8 @@ function EntityClass.StartCheckingForOpposite(self: class)
 				if distance <= DistanceToTarget then
 					self.attacking = true
 					self:DamageTarget()
+				else
+					self.attacking = false
 				end
 			else
 				-- No enemy found, target opposite base
@@ -303,7 +318,12 @@ function EntityClass.StartCheckingForOpposite(self: class)
 					else BasesService.getEnemyBase(self.owner)
 				if enemyBase and enemyBase.model then
 					self.target = enemyBase :: any
-					local baseDistance = (enemyBase.model:GetPivot().Position - self.model:GetPivot().Position).Magnitude
+					local baseDistance = (Vector3.new(
+						enemyBase.model:GetPivot().Position.X,
+						0,
+						enemyBase.model:GetPivot().Position.Z
+					) - Vector3.new(self.model:GetPivot().Position.X, 0, self.model:GetPivot().Position.Z)).Magnitude
+					print(baseDistance)
 					if baseDistance <= DistanceToTarget then
 						self.attacking = true
 						self:DamageTarget()
@@ -326,8 +346,9 @@ function EntityClass.Spawn(self: class, spawnCf: CFrame)
 	model:PivotTo(spawnCf)
 
 	self.model = model
+	self.SpawnCf = spawnCf
 
-	HealthBarUtil.new(function() 
+	HealthBarUtil.new(function()
 		return self.health, self:GetMaxedHealth()
 	end, model, self.name)
 

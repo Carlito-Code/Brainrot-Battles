@@ -1,5 +1,5 @@
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local HttpService = game:GetService('HttpService')
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 local DataService = require(ReplicatedStorage.Utilities.DataService)
 local DataTemplate = require(ReplicatedStorage.SharedModules.DataTemplate)
 
@@ -22,13 +22,17 @@ end
 DataUtil.AddDataBrainrotToInventory = function(Player, Item: DataTemplate.DataBrainrot)
 	local guid = HttpService:GenerateGUID(false)
 
-    local newData = DataService.server:update(Player, "inventory", function(sourceMapping: { [string]: DataTemplate.DataBrainrot })
-        sourceMapping[guid] = Item
+	local newData = DataService.server:update(
+		Player,
+		"inventory",
+		function(sourceMapping: { [string]: DataTemplate.DataBrainrot })
+			sourceMapping[guid] = Item
 
-        return sourceMapping
-    end)
+			return sourceMapping
+		end
+	)
 
-    return guid, newData[guid]
+	return guid, newData[guid]
 end
 
 DataUtil.GetDataBrainrotFromSource = function(Player, source: string, guid: string)
@@ -36,7 +40,7 @@ DataUtil.GetDataBrainrotFromSource = function(Player, source: string, guid: stri
 end
 
 DataUtil.RemoveDataBrainrotFromSource = function(Player, source: string, guid: string)
-	DataService.server:update(Player, "inventory", function(sourceMapping: { [string]: DataTemplate.DataBrainrot })
+	DataService.server:update(Player, source, function(sourceMapping: { [string]: DataTemplate.DataBrainrot })
 		sourceMapping[guid] = nil
 
 		return sourceMapping
