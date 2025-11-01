@@ -18,6 +18,7 @@ local BrainrotFolder = ReplicatedStorage.Assets.Brainrots
 local LevelCapFunction = require(ReplicatedStorage.SharedModules.LevelCapFunction)
 local MultiplierFunction = require(ReplicatedStorage.SharedModules.MultiplierFunction)
 local WaveMultiplierFunction = require(ReplicatedStorage.SharedModules.WaveMultiplierFunction)
+local HealthBarUtil = require(ServerScriptService.Server.Systems.HealthBarUtil)
 
 local EntityClass = {}
 EntityClass.__index = EntityClass
@@ -60,6 +61,11 @@ end
 function EntityClass.GetEntitiesOfType(Player, Enemy)
 	local t = Entities[Player]
 	local entities = {}
+
+	if not t then
+		return entities
+	end
+	
 	for _, informations in t do
 		if Enemy then
 			if informations.isEnemy then
@@ -320,6 +326,10 @@ function EntityClass.Spawn(self: class, spawnCf: CFrame)
 	model:PivotTo(spawnCf)
 
 	self.model = model
+
+	HealthBarUtil.new(function() 
+		return self.health, self:GetMaxedHealth()
+	end, model, self.name)
 
 	self:StartMovingCycle()
 	self:StartCheckingForOpposite()

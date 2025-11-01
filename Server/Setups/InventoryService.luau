@@ -23,8 +23,8 @@ end
 function InventoryService.Init()
 	Remotes.InventoryEntryAdded.OnServerEvent:Connect(function(player)
         local guid, dataBrainrot = DataUtil.AddDataBrainrotToInventory(player, {
-            Name = "Test",
-            Level = 2,
+            Name = "67",
+            Level = 3,
             Xp = 0,
         })
 

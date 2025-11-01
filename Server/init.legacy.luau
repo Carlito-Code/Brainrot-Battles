@@ -42,6 +42,7 @@ end
 DataService.server:init({
 	template = DataTemplate.template,
 	profileStoreIndex = DataTemplate.version .. "Datastore",
+	useMock = true
 })
 
 local list = ServerScriptService.Server.Setups:GetChildren()

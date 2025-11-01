@@ -11,6 +11,7 @@ local animationsHandler = require(replicatedFirst.Controllers.Bindings.Animation
 local registry = require(script.Registry)
 local bottom = require(script.Bottom)
 local top = require(script.Top)
+local plots = require(script.Parent.Plots)
 
 local guiHandler = {}
 local framesContainer = gui.Frames
@@ -71,6 +72,7 @@ function guiHandler.init()
 
 	bottom.Init(gui.Bottom)
 	top.Init(gui.Top)
+	plots.Init()
 end
 
 return guiHandler

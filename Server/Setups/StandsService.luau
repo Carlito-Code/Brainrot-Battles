@@ -48,6 +48,7 @@ function StandsService.LoadStand(BrainrotId, Player)
 	if Container then
 		local Stand = Container:FindFirstChild(FirstAvilable)
 		local brainrot = BrainrotAssets:FindFirstChild(informations.Name)
+		print(informations.Name, "is the brainrot model to load for the stand")
 		if brainrot then
 			local clone: Model = brainrot:Clone()
 			clone.Parent = Stand

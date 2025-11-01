@@ -74,9 +74,7 @@ function WaveHandler.SpawnDefender(player, guid)
 		return false, "Brainrot not equipped"
 	end
 
-	print(player, guid)
-
-	local brainrotData = DataService.server:get(player, { "equipped", guid })
+	local brainrotData = DataService.server:get(player, { "inventory", guid })
 
 	if brainrotData then
 		local entityName = brainrotData.Name
@@ -176,10 +174,16 @@ function WaveHandler.StartWaveSystem(player: Player)
 		end)
 	end
 
+	-- player:SetAttribute("energy", state.energy)
+	-- player:SetAttribute("defenderCount", #Entity.GetEntitiesOfType(player, false))
+	
 	-- Start energy regen (runtime only)
 	state.regenThread = task.spawn(function()
 		while PlayerState[player] == state do
 			state.energy = math.min(Configuration.maxEnergy, state.energy + Configuration.energyRegenRate)
+
+			player:SetAttribute("energy", state.energy)
+			player:SetAttribute("defenderCount", #Entity.GetEntitiesOfType(player, false))
 			task.wait(Configuration.energyRegenInterval)
 		end
 	end)
@@ -207,6 +211,8 @@ function WaveHandler.StopWaveSystem(player: Player)
 
 	-- Remove player state
 	PlayerState[player] = nil
+
+	player:SetAttribute("waveInSession", false)
 
 	print("Stopped wave system for player " .. player.Name)
 	return true, "Wave system stopped"
@@ -260,6 +266,14 @@ function WaveHandler.Init()
 		local success, message = WaveHandler.StopWaveSystem(player)
 		if not success then
 			warn("Failed to stop wave system for " .. player.Name .. ": " .. message)
+		end
+	end)
+
+	Remotes.ToggleAutoSpawn.OnServerEvent:Connect(function(player)
+		if player:GetAttribute("autoSpawn") then
+			player:SetAttribute("autoSpawn", false)
+		else
+			player:SetAttribute("autoSpawn", true)
 		end
 	end)
 

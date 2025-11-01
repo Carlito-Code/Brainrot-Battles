@@ -38,12 +38,12 @@ end
 
 function Inventory.EquipBrainrot(guid: string)
 	local player = _Players.LocalPlayer
-	local bottomContainer = player.PlayerGui.MainGui.Bottom
+	local bottomContainer = player.PlayerGui.MainGui.Bottom.Slots
 	local slot = bottomContainer:FindFirstChild("Slot_" .. NextEquippableSlot)
 
 	local oldGuid = slot:GetAttribute("BrainrotGUID")
 
-	local newlyEquippedBrainrot = DataService:get({ "inventory", guid }) or DataService:get({ "equipped", guid })
+	local newlyEquippedBrainrot = DataService:get({ "inventory", guid })
 
 	print(newlyEquippedBrainrot, guid)
 
@@ -51,6 +51,12 @@ function Inventory.EquipBrainrot(guid: string)
 	slot.EnergyAmount.Text = BrainrotConfigurations[newlyEquippedBrainrot.Name].EnergyCost
 
 	slot:SetAttribute("BrainrotGUID", guid)
+
+    NextEquippableSlot += 1
+
+    if NextEquippableSlot > 4 then
+        NextEquippableSlot = 1
+    end
 
 	_Remotes.InventoryEntryEquipped:FireServer(guid, oldGuid)
 end

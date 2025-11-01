@@ -49,6 +49,9 @@ function plotService.Claim(plr: Player, plot: Model)
 
 	signals.CLAIMED_PLOT:Fire(plr, plot, newJanitor)
 
+	-- Create proximity prompt for stock shop
+	remotes.AddProximity:FireClient(plr, plot.StockShopPrompt, "StockShop", {}, "Summon", Enum.KeyCode.E, 0, true)
+
 	local char = plr.Character
 	if char then
 		char:PivotTo(plot.TeleportPart.CFrame)
@@ -72,7 +75,10 @@ function plotService.getPlot(plr: Player)
 		end
 	end
 
+	print("AWAITING FOR THE PLOT")
 	plotService.awaitAsync(plr)
+
+	print("THE PLAYER GOT THE PLOT AFTER AWAITING")
 
 	return plotService.getPlot(plr)
 end

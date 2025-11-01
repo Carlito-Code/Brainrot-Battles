@@ -25,7 +25,21 @@ local function setupConnections(frame: Frame)
 	bindClick(frame, frame:FindFirstChild("WaveSpeedMultiplier"), Top.OnWaveSpeedMultiplierClicked)
 end
 
-function Top.OnAutoButtonClicked(parentFrame: Frame?, button: GuiButton) end
+function Top.OnAutoButtonClicked(parentFrame: Frame?, button: GuiButton)
+	local player = Players.LocalPlayer
+
+	local autoSpawnActive = player:GetAttribute("autoSpawn")
+	
+	if autoSpawnActive then
+		button.ActiveIcon.Visible = false
+		button.InactiveIcon.Visible = true
+	else
+		button.ActiveIcon.Visible = true
+		button.InactiveIcon.Visible = false
+	end
+
+	Remotes.ToggleAutoSpawn:FireServer(player)
+end
 
 function Top.OnStartButtonClicked(parentFrame: Frame?, button: GuiButton)
 	local player = Players.LocalPlayer
@@ -36,6 +50,10 @@ function Top.OnStartButtonClicked(parentFrame: Frame?, button: GuiButton)
 
 	parentFrame.StartButton.Visible = false
 	parentFrame.StopButton.Visible = true
+
+	player.PlayerGui.MainGui.Bottom.Inventory.Visible = false
+	player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = true
+	player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = true
 
 	Remotes.StartWaveSystem:FireServer(player)
 end
@@ -49,6 +67,10 @@ function Top.OnStopButtonClicked(parentFrame: Frame?, button: GuiButton)
 
 	parentFrame.StopButton.Visible = false
 	parentFrame.StartButton.Visible = true
+
+	player.PlayerGui.MainGui.Bottom.Inventory.Visible = true
+	player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = false
+	player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = false
 
 	Remotes.StopWaveSystem:FireServer(player)
 end

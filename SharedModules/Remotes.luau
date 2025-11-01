@@ -15,4 +15,6 @@ return {
 	InventoryEntryAdded = TypedRemote.event("InventoryEntryAdded"),
 	InventoryEntryEquipped = TypedRemote.event("InventoryEntryEquipped"),
 	InventorySpawn = TypedRemote.event("InventorySpawn"),
+
+	ToggleAutoSpawn = TypedRemote.event("ToggleAutoSpawn"),
 }
