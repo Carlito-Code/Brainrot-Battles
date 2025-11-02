@@ -7,10 +7,18 @@ local Data = {
 	template = {
 		cash = Configuration.startingCash,
 		energy = Configuration.startingEnergy,
-		equipped = {},
+		equipped = {
+			["guid"] = true
+		},
 		gamepasses = {},
 		maxUnitsOnField = Configuration.starterMaxUnits,
-		inventory = {},
+		inventory = {
+			["guid"] = {
+				Name = "CappuccinoAssassino",
+				Level = 5,
+				Xp = 0,
+			}
+		},
 	},
 }
 

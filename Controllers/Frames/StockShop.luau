@@ -31,6 +31,9 @@ function StockShop.LoadUnits(Frame: Frame)
 
         unitFrame.Parent = Frame.Units
     end
+
+    Frame.Units.CanvasSize = UDim2.new(0, 0, Frame.Units.UIListLayout.AbsoluteContentSize.Y/Frame.AbsoluteSize.Y + Frame.Units.UIListLayout.Padding.Scale, 0)
+    Frame.Units.UIListLayout.Padding = UDim.new(Frame.Units.UIListLayout.Padding.Offset/Frame.Units.AbsoluteCanvasSize.Y, 0)
 end
 
 function StockShop.Init(FramesContainer: Folder)

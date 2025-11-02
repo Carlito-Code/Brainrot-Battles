@@ -32,7 +32,7 @@ function StandsService.LoadStand(BrainrotId, Player)
 	end
 
 	local FirstAvilable = FindFirstAvailableIndex(Player)
-	local dataDirectory = { "equipped", BrainrotId }
+	local dataDirectory = { "inventory", BrainrotId }
 	local informations = DataService.server:get(Player, dataDirectory)
 	if not informations then
 		return
@@ -47,6 +47,7 @@ function StandsService.LoadStand(BrainrotId, Player)
 	local Container = PlayerPlot:FindFirstChild("BrainrotEquipSpawns")
 	if Container then
 		local Stand = Container:FindFirstChild(FirstAvilable)
+		print(informations, "is the informations for the brainrot")
 		local brainrot = BrainrotAssets:FindFirstChild(informations.Name)
 		print(informations.Name, "is the brainrot model to load for the stand")
 		if brainrot then

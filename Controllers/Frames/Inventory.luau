@@ -3,15 +3,26 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local _TweenService = game:GetService("TweenService")
 local _Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 local DataService = require(ReplicatedStorage.Utilities.DataService).client
-local BrainrotConfigurations = require(ReplicatedStorage.Configurations.Brainrots)
 local InventoryTypes = require(ReplicatedStorage.Types.InventoryTemplate)
-local Inventory = {}
+local Bottom = require(script.Parent.Parent.Setups.GuiController.Bottom)
+local ViewportHandler = require(script.Parent.Parent.Setups.ViewportHandler)
 
-local NextEquippableSlot = 1
+local Inventory = {}
 
 local function setupConnections(frame: Frame)
 	-- Initial read for UI bootstrap
 	-- local items = DataService:get({ "inventory" }) or {}
+
+	for guid, dataBrainrot in DataService:get({ "inventory" }) do
+		Inventory.AddSlot(frame, {
+			guid = guid,
+			dataBrainrot = dataBrainrot,
+		})
+	end
+
+	DataService:getChangedSignal({ "equipped" }):Connect(function()
+		frame.Background.Equipped.Text = "Equipped: " .. Inventory.GetNumberOfEquippedBrainrots() .. "/4"
+	end)
 
 	_Remotes.InventoryEntryAdded.OnClientEvent:Connect(function(entry: InventoryTypes.DataBrainrotInventoryEntry)
 		Inventory.AddSlot(frame, entry)
@@ -27,11 +38,12 @@ function Inventory.AddSlot(frame: Frame, entry: InventoryTypes.DataBrainrotInven
 	slot.Lvl.Text = entry.dataBrainrot.Level
 	slot.NameLabel.Text = entry.dataBrainrot.Name
 
+	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, entry.dataBrainrot.Name)
+
 	slot.Background.MouseButton1Click:Connect(function()
 		local equippedBrainrot = DataService:get({ "equipped", entry.guid })
 
 		if equippedBrainrot then
-			print("unequipping brainrot", entry)
 			Inventory.UnequipBrainrot(entry.guid)
 		else
 			Inventory.EquipBrainrot(entry.guid)
@@ -46,24 +58,14 @@ end
 function Inventory.EquipBrainrot(guid: string)
 	local player = _Players.LocalPlayer
 	local bottomContainer = player.PlayerGui.MainGui.Bottom.Slots
-	local slot = bottomContainer:FindFirstChild("Slot_" .. NextEquippableSlot)
+	local inventoryFrame = player.PlayerGui.MainGui.Frames.Inventory
+	local slot = bottomContainer:FindFirstChild("Slot_" .. Bottom.NextEquippableSlot)
 
 	local oldGuid = slot:GetAttribute("BrainrotGUID")
 
-	local newlyEquippedBrainrot = DataService:get({ "inventory", guid })
+	slot.Checkmark.Visible = true
 
-	print(newlyEquippedBrainrot, guid)
-
-	slot.Level.Text = "Level " .. newlyEquippedBrainrot.Level
-	slot.EnergyAmount.Text = BrainrotConfigurations[newlyEquippedBrainrot.Name].EnergyCost
-
-	slot:SetAttribute("BrainrotGUID", guid)
-
-	NextEquippableSlot += 1
-
-	if NextEquippableSlot > 4 then
-		NextEquippableSlot = 1
-	end
+	Bottom.ProcessEquippedBrainrot(guid)
 
 	_Remotes.InventoryEntryEquipped:FireServer(guid, oldGuid)
 end
@@ -71,7 +73,6 @@ end
 function Inventory.UnequipBrainrot(guid: string)
 	local player = _Players.LocalPlayer
 	local bottomContainer = player.PlayerGui.MainGui.Bottom
-
 	local slot
 
 	for _, equippedSlot in bottomContainer.Slots:GetChildren() do
@@ -81,20 +82,35 @@ function Inventory.UnequipBrainrot(guid: string)
 		end
 	end
 
-	print(slot.Name, "is the slot", guid)
-
 	if not slot then
 		return
 	end
 
-	NextEquippableSlot = tonumber(slot.name:match("%d"))
+	Bottom.NextEquippableSlot = tonumber(slot.name:match("%d"))
 
 	slot.Level.Text = ""
 	slot.EnergyAmount.Text = ""
 
 	slot:SetAttribute("BrainrotGUID", "")
 
+	slot.Checkmark.Visible = false
+
+	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, "")
+
 	_Remotes.InventoryEnteyUnequipped:FireServer(guid)
+
+end
+
+-- this should be in a shared module or something but I can't be bothered rn
+function Inventory.GetNumberOfEquippedBrainrots(): number
+	local equippedBrainrots = DataService:get({ "equipped" })
+	local equippedCount = 0
+
+	for guid, _ in equippedBrainrots do
+		equippedCount += 1
+	end
+
+	return equippedCount
 end
 
 function Inventory.Init(FramesContainer: Folder)
@@ -102,6 +118,8 @@ function Inventory.Init(FramesContainer: Folder)
 	if not Frame then
 		return
 	end
+
+	Frame.Background.Equipped.Text = "Equipped: " .. Inventory.GetNumberOfEquippedBrainrots() .. "/4"
 
 	setupConnections(Frame)
 end

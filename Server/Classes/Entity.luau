@@ -263,7 +263,7 @@ function EntityClass.TargetTo(self: class, cf: CFrame)
 	end
 	local humanoid = self.model:FindFirstChildOfClass("Humanoid")
 	if cf == nil then
-		humanoid:MoveTo(self.model:GetPivot().Position)
+		humanoid:MoveTo(self.model.HumanoidRootPart.Position)
 		return
 	end
 
@@ -323,7 +323,6 @@ function EntityClass.StartCheckingForOpposite(self: class)
 						0,
 						enemyBase.model:GetPivot().Position.Z
 					) - Vector3.new(self.model:GetPivot().Position.X, 0, self.model:GetPivot().Position.Z)).Magnitude
-					print(baseDistance)
 					if baseDistance <= DistanceToTarget then
 						self.attacking = true
 						self:DamageTarget()
@@ -343,7 +342,10 @@ function EntityClass.Spawn(self: class, spawnCf: CFrame)
 
 	local model = BrainrotFolder:FindFirstChild(self.name):Clone()
 	model.Parent = workspace.Entities
-	model:PivotTo(spawnCf)
+
+	spawnCf = spawnCf + Vector3.new(0, model:GetExtentsSize().Y/2, 0)
+
+	model.HumanoidRootPart.CFrame = spawnCf
 
 	self.model = model
 	self.SpawnCf = spawnCf

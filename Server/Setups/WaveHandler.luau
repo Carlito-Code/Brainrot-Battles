@@ -123,6 +123,8 @@ function WaveHandler.SpawnDefender(player, guid)
 		-- Create the actual defender entity
 		local defenderEntity = Entity.new(guid, entityName, player, false, false)
 
+		player:SetAttribute("defenderCount", #defenders + 1)
+
 		-- Spawn the defender at the calculated position
 		local spawnCf = CFrame.new(RandomPosition)
 		defenderEntity:Spawn(spawnCf)
@@ -189,6 +191,8 @@ function WaveHandler.StartWaveSystem(player: Player)
 			task.wait(Configuration.energyRegenInterval)
 		end
 	end)
+
+	player:SetAttribute("waveInSession", true)
 
 	-- Regenerate bases for the initial wave
 	BasesService.regenerateBases(player, state.currentWave)

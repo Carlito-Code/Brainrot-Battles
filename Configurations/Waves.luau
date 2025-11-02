@@ -1,7 +1,7 @@
 local Waves = {
 	["0-10"] = {
-		["67"] = {
-			Min = 2,
+		["BombardiroCrocodilo"] = {
+			Min = 0,
 			Max = 10
 		}
 	}

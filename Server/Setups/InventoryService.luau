@@ -21,20 +21,21 @@ function InventoryService.GetNumberOfEquippedBrainrots(player: Player): number
 end
 
 function InventoryService.Init()
-	Remotes.InventoryEntryAdded.OnServerEvent:Connect(function(player)
-		local guid, dataBrainrot = DataUtil.AddDataBrainrotToInventory(player, {
-			Name = "67",
-			Level = 3,
-			Xp = 0,
-		})
+	-- For testing purposes
+	-- Remotes.InventoryEntryAdded.OnServerEvent:Connect(function(player)
+	-- 	local guid, dataBrainrot = DataUtil.AddDataBrainrotToInventory(player, {
+	-- 		Name = "67",
+	-- 		Level = 3,
+	-- 		Xp = 0,
+	-- 	})
 
-		local entry: InventoryTypes.DataBrainrotInventoryEntry = {
-			guid = guid,
-			dataBrainrot = dataBrainrot,
-		}
+	-- 	local entry: InventoryTypes.DataBrainrotInventoryEntry = {
+	-- 		guid = guid,
+	-- 		dataBrainrot = dataBrainrot,
+	-- 	}
 
-		Remotes.InventoryEntryAdded:FireClient(player, entry)
-	end)
+	-- 	Remotes.InventoryEntryAdded:FireClient(player, entry)
+	-- end)
 
 	Remotes.InventoryEntryEquipped.OnServerEvent:Connect(function(player, guid, oldGuid)
 		local newBrainrot = DataUtil.GetDataBrainrotFromSource(player, "inventory", guid)
