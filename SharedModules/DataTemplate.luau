@@ -8,16 +8,16 @@ local Data = {
 		cash = Configuration.startingCash,
 		energy = Configuration.startingEnergy,
 		equipped = {
-			["guid"] = true
+			["guid"] = true,
 		},
 		gamepasses = {},
 		maxUnitsOnField = Configuration.starterMaxUnits,
 		inventory = {
 			["guid"] = {
-				Name = "CappuccinoAssassino",
+				Name = "BombardiroCrocodilo",
 				Level = 5,
 				Xp = 0,
-			}
+			},
 		},
 	},
 }

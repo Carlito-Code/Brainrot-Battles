@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -43,6 +44,7 @@ export type BasicClass = {
 	attacking: boolean,
 	checkingConnection: thread?,
 	SpawnCf: CFrame,
+	randomId: string,
 }
 export type class = typeof(setmetatable({} :: BasicClass, EntityClass))
 
@@ -57,6 +59,19 @@ function EntityClass.GetTargetsOfId(Player, Id)
 		end
 	end
 	return count
+end
+
+function EntityClass.GetEntitiesTargetingId(Player, Id): { class }
+	local t = Entities[Player]
+	local entities = {}
+	if t then
+		for _, informations: class in t do
+			if informations.target and informations.target.id == Id then
+				table.insert(entities, informations)
+			end
+		end
+	end
+	return entities
 end
 
 function EntityClass.GetEntitiesOfType(Player, Enemy, p)
@@ -117,7 +132,8 @@ function EntityClass.FindClosestEntity(CurrentCf, Player, Enemy)
 	local closestEntity = nil
 	local closestDistance = math.huge
 	for _, entity in EntityClass.GetEntitiesOfType(Player, Enemy) do
-		if entity.model and entity.model.PrimaryPart then
+		print(entity)
+		if entity.model then
 			local distance = (entity.model:GetPivot().Position - CurrentCf.Position).Magnitude
 			if distance < closestDistance then
 				closestEntity = entity
@@ -238,9 +254,37 @@ function EntityClass.GetAroundPositionsForTarget(self: class)
 	if not self.target then
 		return nil
 	end
-	local _EntitiesForTarget = EntityClass.GetTargetsOfId(self.owner, self.target.id)
-	-- TODO: implement circle orientation around target
-	return self.target.model:GetPivot()
+	if not self.target.model then
+		return nil
+	end
+
+	local entitiesTargetingSame = EntityClass.GetEntitiesTargetingId(self.owner, self.target.id)
+
+	-- Sort entities by randomId for consistent ordering
+	table.sort(entitiesTargetingSame, function(a, b)
+		return a.randomId < b.randomId
+	end)
+
+	-- Find this entity's index in the sorted list
+	local myIndex = 1
+	for i, entity in ipairs(entitiesTargetingSame) do
+		if entity.randomId == self.randomId then
+			myIndex = i
+			break
+		end
+	end
+
+	local targetPivot = self.target.model:GetPivot()
+	local totalEntities = #entitiesTargetingSame
+
+	-- Use DistanceToTarget as the radius for the circle
+	local radius = DistanceToTarget
+
+	-- Calculate the circle position for this entity
+	local circlePosition = _CircleUtilities.GetCirclePosition(targetPivot, radius, myIndex, totalEntities, 0, 0)
+
+	-- Return a CFrame at the calculated position, facing the target
+	return CFrame.lookAt(circlePosition, targetPivot.Position)
 end
 
 function EntityClass.Restart(self: class)
@@ -263,7 +307,7 @@ function EntityClass.TargetTo(self: class, cf: CFrame)
 	end
 	local humanoid = self.model:FindFirstChildOfClass("Humanoid")
 	if cf == nil then
-		humanoid:MoveTo(self.model.HumanoidRootPart.Position)
+		humanoid:MoveTo(self.model:GetPivot().Position)
 		return
 	end
 
@@ -293,6 +337,7 @@ end
 
 function EntityClass.StartCheckingForOpposite(self: class)
 	self.checkingConnection = task.spawn(function()
+		local lastTick = tick()
 		while true do
 			if not self.alive then
 				break
@@ -307,7 +352,11 @@ function EntityClass.StartCheckingForOpposite(self: class)
 				end
 				if distance <= DistanceToTarget then
 					self.attacking = true
-					self:DamageTarget()
+					if tick() - lastTick >= 1 then
+						self:DamageTarget()
+						lastTick = tick()
+						print("Attacking target")
+					end
 				else
 					self.attacking = false
 				end
@@ -343,9 +392,9 @@ function EntityClass.Spawn(self: class, spawnCf: CFrame)
 	local model = BrainrotFolder:FindFirstChild(self.name):Clone()
 	model.Parent = workspace.Entities
 
-	spawnCf = spawnCf + Vector3.new(0, model:GetExtentsSize().Y/2, 0)
+	spawnCf = spawnCf + Vector3.new(0, model:GetExtentsSize().Y / 2, 0)
 
-	model.HumanoidRootPart.CFrame = spawnCf
+	model:PivotTo(spawnCf)
 
 	self.model = model
 	self.SpawnCf = spawnCf
@@ -364,6 +413,7 @@ function EntityClass.Clear(self: class)
 	if self.model then
 		self.model:Destroy()
 	end
+	Entities[self.owner][self.randomId] = nil
 	self.alive = false
 end
 
@@ -379,6 +429,7 @@ function EntityClass.new(Id: string, BrainrotName: string, Owner: Player, IsEnem
 			currentWave = CurrentWave,
 			diedSignal = Signal.new(),
 			checkingConnection = nil,
+			randomId = HttpService:GenerateGUID(),
 		} :: BasicClass,
 		EntityClass
 	)
@@ -388,7 +439,7 @@ function EntityClass.new(Id: string, BrainrotName: string, Owner: Player, IsEnem
 		Entities[Owner] = {}
 	end
 
-	Entities[Owner][Id] = self
+	Entities[Owner][self.randomId] = self
 
 	return self
 end

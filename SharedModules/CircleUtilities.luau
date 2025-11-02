@@ -24,5 +24,61 @@ local CirclePositions = {}
 		)
 ]]
 
+function CirclePositions.GetCirclePositions(
+	centerCF: CFrame,
+	radius: number,
+	count: number,
+	startAngle: number?,
+	yOffset: number?
+): { Vector3 }
+	local positions = {}
+	startAngle = startAngle or 0
+	yOffset = yOffset or 0
+
+	local angleStep = (2 * math.pi) / count
+	local centerPosition = centerCF.Position
+	local centerRight = centerCF.RightVector
+	local centerLookVector = centerCF.LookVector
+
+	for i = 1, count do
+		local angle = startAngle + (i - 1) * angleStep
+		local x = math.cos(angle) * radius
+		local z = math.sin(angle) * radius
+
+		-- Transform the position relative to the center CFrame's orientation
+		local localPosition = centerRight * x + centerLookVector * z
+		local worldPosition = centerPosition + localPosition + Vector3.new(0, yOffset, 0)
+
+		table.insert(positions, worldPosition)
+	end
+
+	return positions
+end
+
+-- Get a single position at a specific index in the circle
+function CirclePositions.GetCirclePosition(
+	centerCF: CFrame,
+	radius: number,
+	index: number,
+	totalCount: number,
+	startAngle: number?,
+	yOffset: number?
+): Vector3
+	startAngle = startAngle or 0
+	yOffset = yOffset or 0
+
+	local angleStep = (2 * math.pi) / totalCount
+	local angle = startAngle + (index - 1) * angleStep
+
+	local x = math.cos(angle) * radius
+	local z = math.sin(angle) * radius
+
+	local centerPosition = centerCF.Position
+	local centerRight = centerCF.RightVector
+	local centerLookVector = centerCF.LookVector
+
+	local localPosition = centerRight * x + centerLookVector * z
+	return centerPosition + localPosition + Vector3.new(0, yOffset, 0)
+end
 
 return CirclePositions

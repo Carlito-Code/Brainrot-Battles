@@ -63,7 +63,7 @@ function Inventory.EquipBrainrot(guid: string)
 
 	local oldGuid = slot:GetAttribute("BrainrotGUID")
 
-	slot.Checkmark.Visible = true
+	--slot.Checkmark.Visible = true
 
 	Bottom.ProcessEquippedBrainrot(guid)
 
@@ -93,12 +93,11 @@ function Inventory.UnequipBrainrot(guid: string)
 
 	slot:SetAttribute("BrainrotGUID", "")
 
-	slot.Checkmark.Visible = false
+	--slot.Checkmark.Visible = false
 
 	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, "")
 
 	_Remotes.InventoryEnteyUnequipped:FireServer(guid)
-
 end
 
 -- this should be in a shared module or something but I can't be bothered rn

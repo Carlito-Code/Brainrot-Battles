@@ -60,11 +60,13 @@ function WaveHandler:SpawnWave(player, waveNumber)
 			EnemySpawnLine.Size.Z / 2 + 1
 		)
 
+	print(WaveInformations)
 	for entityName, informations in pairs(WaveInformations) do
 		local Amount = math.clamp(math.round(informations.Max * Percentage), informations.Min, informations.Max)
 		for i = 1, Amount do
 			local EntityClass = Entity.new(Http:GenerateGUID(), entityName, player, true, waveNumber)
 			EntityClass:Spawn(CFrame.new(RandomPosition))
+			print("Spawned entity " .. entityName .. " for player " .. player.Name)
 		end
 	end
 end

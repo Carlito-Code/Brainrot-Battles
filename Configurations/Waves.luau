@@ -1,21 +1,21 @@
 local Waves = {
 	["0-10"] = {
 		["BombardiroCrocodilo"] = {
-			Min = 0,
-			Max = 10
-		}
-	}
+			Min = 3,
+			Max = 10,
+		},
+	},
 }
 
 export type Wave = {
 	[string]: {
 		Min: number,
-		Max: number
-	}
+		Max: number,
+	},
 }
 
 export type Data = {
-	[string]: Wave
+	[string]: Wave,
 }
 
 return Waves

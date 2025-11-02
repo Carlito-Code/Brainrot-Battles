@@ -1,9 +1,10 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local _ServerScriptService = game:GetService("ServerScriptService")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local PlotService = require(script.Parent.PlotService)
 local Signal = require(ReplicatedStorage.Utilities.Signal)
 local WaveMultiplierFunction = require(ReplicatedStorage.SharedModules.WaveMultiplierFunction)
+local HealthBarUtil = require(ServerScriptService.Server.Systems.HealthBarUtil)
 
 type BaseObject = {
 	model: BasePart,
@@ -64,6 +65,30 @@ local function findBasePart(parent: Instance, name: string): BasePart?
 	return folder
 end
 
+local function setupTowerHealthBar(base: BaseObject, plot: Model, towerFolderName: string, towerName: string)
+	local towerFolder = plot:FindFirstChild(towerFolderName)
+	if not towerFolder then
+		warn("Could not find " .. towerFolderName .. " in plot")
+		return
+	end
+
+	local healthBarBillboard = towerFolder:FindFirstChild("HealthBarBillboard")
+	if not healthBarBillboard then
+		warn("Could not find HealthBarBillboard in " .. towerFolderName)
+		return
+	end
+
+	if not healthBarBillboard:IsA("BillboardGui") then
+		warn("HealthBarBillboard in " .. towerFolderName .. " is not a BillboardGui")
+		return
+	end
+
+	-- Initialize health bar for the tower
+	HealthBarUtil.useExisting(function()
+		return base.health, base.maxHealth
+	end, healthBarBillboard, towerName)
+end
+
 function BasesService.getBases(player: Player): (BaseObject, BaseObject)
 	local existing = playerBases[player]
 	if existing then
@@ -85,6 +110,10 @@ function BasesService.getBases(player: Player): (BaseObject, BaseObject)
 
 	local defender = makeBaseObject(defenderPart, player, false, DEFAULT_BASE_HEALTH)
 	local enemy = makeBaseObject(enemyPart, player, true, DEFAULT_BASE_HEALTH)
+
+	-- Setup health bars for towers
+	setupTowerHealthBar(defender, plot, "HomeTower", "Home Tower")
+	setupTowerHealthBar(enemy, plot, "EnemyTower", "Enemy Tower")
 
 	playerBases[player] = { defender = defender, enemy = enemy }
 	return defender, enemy
