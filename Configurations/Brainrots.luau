@@ -26,6 +26,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 7, -extentsSize.Z*1.1)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 7, 0))
+		end
 	},
 	BombardiroCrocodilo = {
 		DisplayName = "Bombardiro Crocodilo",
@@ -36,6 +41,12 @@ local Data = {
 		Rarity = "Legendary",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(7, extentsSize.Y * 1.4, -extentsSize.Z/1.2)).Position, model.HumanoidRootPart.Position + Vector3.new(-4, -1.5, 0)) * CFrame.Angles(0, 0, math.rad(-15))
+			cam.FieldOfView = 50
+		end
 	},
 	BrrBrrPapatim = {
 		DisplayName = "Brr Brr Papatim",
@@ -46,6 +57,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 5, -extentsSize.Z*1.25)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 4.5, 0))
+		end
 	},
 	CanneloniDragon = {
 		DisplayName = "Canneloni Dragon",
@@ -56,6 +72,11 @@ local Data = {
 		Rarity = "Secret",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(5, -2, -extentsSize.Z/1.25)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 2.5, 0))
+		end
 	},
 	CappuccinoAssassino = {
 		DisplayName = "Cappuccino Assassino",
@@ -81,6 +102,11 @@ local Data = {
 		Rarity = "Legendary",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 9, -extentsSize.Z)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 9, 0))
+		end
 	},
 	LiriliLarila = {
 		DisplayName = "Lirili Larila",
@@ -91,6 +117,11 @@ local Data = {
 		Rarity = "Rare",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(10, -2, -extentsSize.Z * 1.5)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 3.5, 0))
+		end
 	},
 	NoobiniPizzanini = {
 		DisplayName = "Noobini Pizzanini",
@@ -101,6 +132,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 11, -extentsSize.Z*1.67)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 11, 0))
+		end
 	},
 	OdinDinDinDun = {
 		DisplayName = "Odin Din Din Dun",
@@ -126,6 +162,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(-10, 3, -extentsSize.Z/1.5)).Position, model.HumanoidRootPart.Position + Vector3.new(3,5,0))
+		end
 	},
 	ToToToSahur = {
 		DisplayName = "To To To Sahur",
@@ -136,6 +177,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 7, -extentsSize.Z/2.5)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 4.5, 0))
+		end
 	},
 	TralaleroTralala = {
 		DisplayName = "Tralalero Tralala",
@@ -146,6 +192,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(-10, 3, -extentsSize.Z/1.5)).Position, model.HumanoidRootPart.Position + Vector3.new(3,5,0))
+		end
 	},
 	TrippiTroppi = {
 		DisplayName = "Trippi Troppi",
@@ -156,6 +207,11 @@ local Data = {
 		Rarity = "Rare",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, 1, -extentsSize.Z/1.25)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 1, 0))
+		end
 	}
 }
 

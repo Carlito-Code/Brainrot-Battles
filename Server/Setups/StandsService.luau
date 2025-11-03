@@ -19,8 +19,7 @@ local TemplateAdd = {
 
 local function FindFirstAvailableIndex(Player)
 	for i, v in pairs(PlayerStands[Player]) do
-		print(i)
-		if #v == 0 then
+		if not v.directory then
 			print("Found")
 			return i
 		end
@@ -84,6 +83,13 @@ function StandsService.LoadStand(BrainrotId, Player)
 	end
 end
 
+function StandsService.RemoveStand(Player, Stand)
+	Stand:ClearAllChildren()
+	Stand:SetAttribute("BrainrotGUID", nil)
+
+	PlayerStands[Player][tonumber(Stand.Name)] = {}
+end
+
 -- don't use this function
 function StandsService.EquipBrainrot(Player, BrainrotId)
 	DataService.server:update(Player, "inventory", function(old)
@@ -108,11 +114,29 @@ function StandsService.Init()
 			local PlayerPlot = PlotService.getPlot(Player)
 			local Container = PlayerPlot:FindFirstChild("BrainrotEquipSpawns")
 
-			-- for _, Stand in Container:GetChildren() do
-			-- 	local brainrotGUID = Stand:GetAttribute("BrainrotGUID")
-			-- 	if not newlyEquippedBrainrots[brainrotGUID] then
-					
-			-- 	end
+			for _, Stand in Container:GetChildren() do
+				local brainrotGUID = Stand:GetAttribute("BrainrotGUID")
+				if not newlyEquippedBrainrots[brainrotGUID] then
+					StandsService.RemoveStand(Player, Stand)
+				end
+			end
+
+			for guid, _ in newlyEquippedBrainrots do
+				local found = false
+
+				for _, Stand in Container:GetChildren() do
+					local standGUID = Stand:GetAttribute("BrainrotGUID")
+
+					if standGUID == guid then
+						found = true
+						break
+					end
+				end
+
+				if not found then
+					StandsService.LoadStand(guid, Player)
+				end
+			end
 		end)
 	end)
 end

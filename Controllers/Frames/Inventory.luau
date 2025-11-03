@@ -95,12 +95,13 @@ function Inventory.UnequipBrainrot(guid: string)
 		return
 	end
 
+	local inventorySlot = player.PlayerGui.MainGui.Frames.Inventory.Container:FindFirstChild(guid)
+	inventorySlot.Checkmark.Visible = false
+
 	slot.Level.Text = ""
 	slot.EnergyAmount.Text = ""
 
 	slot:SetAttribute("BrainrotGUID", "")
-
-	--slot.Checkmark.Visible = false
 
 	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, "")
 

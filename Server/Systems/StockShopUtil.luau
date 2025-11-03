@@ -85,11 +85,11 @@ function blocks:PurchaseBlock(plr, BlockName)
 		and CurrentPlayerStock[BlockName] > 0
 		and CurrentRebirths >= tonumber(ReplicatedStorage.Blocks:FindFirstChild(BlockName):GetAttribute("Rebirths"))
 	then
-		dataservice.server:update(plr, { "Money" }, function(old)
+		dataservice.server:update(plr, { "cash" }, function(old)
 			local amountToRemove = 0
 			if old > 100 then
 				amountToRemove = 100
-				dataservice.server:arrayInsert(plr, { "Inventory" }, {
+				dataservice.server:arrayInsert(plr, { "inventory" }, {
 					Type = "Other",
 					Name = BlockName,
 					Rarity = ReplicatedStorage.Blocks[BlockName]:GetAttribute("Rarity"),
