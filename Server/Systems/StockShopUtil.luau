@@ -1,16 +1,20 @@
+local HttpService = game:GetService("HttpService")
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local NotificationService = game:GetService("NotificationService")
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
+local DataUtil = require(script.Parent.DataUtil)
+local BrainrotShop = require(ReplicatedStorage.Configurations.BrainrotShop)
 local Rng = require("./WeightedRNG")
 local dataservice = require(ReplicatedStorage.Utilities.DataService)
 local Brainrots = require(ReplicatedStorage.Configurations.Brainrots)
 local Percentages = require(ReplicatedStorage.Configurations.Rarities)
 local Configuration = require(ReplicatedStorage.Configurations.Configuration)
+local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 local TimeBetween = 5 * 60
 
-local blocks = {}
+local StockUtil = {}
 local defualt = {}
 for brainrotName, _ in Brainrots do
 	defualt[brainrotName] = 0
@@ -20,7 +24,7 @@ local currentStock = {}
 local currentTime = nil
 local ROLL_AMOUNT = Configuration.stockAmount
 
-function blocks.assignAsMaster(): (boolean?, string?)
+function StockUtil.assignAsMaster(): (boolean?, string?)
 	local id = game.JobId
 
 	local memorystore = MemoryStoreService:GetHashMap("securitycfg")
@@ -49,7 +53,7 @@ function blocks.assignAsMaster(): (boolean?, string?)
 	end
 end
 
-local function GetListOfRarity(rarity: string): {string}
+local function GetListOfRarity(rarity: string): { string }
 	local list = {}
 	for brainrotName, informations: Brainrots.Brainrot in Brainrots do
 		if informations.Rarity == rarity then
@@ -59,12 +63,12 @@ local function GetListOfRarity(rarity: string): {string}
 	return list
 end
 
-function blocks.UpdateStock()
+function StockUtil.UpdateStock()
 	local memorystore = MemoryStoreService:GetHashMap("securitycfg")
 	memorystore:UpdateAsync("roll", function(old)
 		local list = table.clone(defualt)
 		for i = 1, ROLL_AMOUNT do
-			local rarity = Rng.get(Percentages)
+			local rarity = Rng.get(Percentages, 1)
 			local rarityList = GetListOfRarity(rarity)
 			local result = rarityList[math.random(1, #rarityList)]
 			list[result] += 1
@@ -76,44 +80,40 @@ function blocks.UpdateStock()
 	currentTime = os.time()
 end
 
-function blocks:PurchaseBlock(plr, BlockName)
-	local CurrentPlayerStock = blocks:ReturnStockAndTime(plr)
-	local CurrentRebirths = dataservice.server:get(plr, { "Rebirths" })
-
-	if
-		CurrentPlayerStock[BlockName]
-		and CurrentPlayerStock[BlockName] > 0
-		and CurrentRebirths >= tonumber(ReplicatedStorage.Blocks:FindFirstChild(BlockName):GetAttribute("Rebirths"))
-	then
+function StockUtil:PurchaseBrainrot(plr, BrainrotName)
+	local CurrentPlayerStock = StockUtil:ReturnStockAndTime(plr)
+	if CurrentPlayerStock[BrainrotName] and CurrentPlayerStock[BrainrotName] > 0 then
+		local price = BrainrotShop[BrainrotName].price
 		dataservice.server:update(plr, { "cash" }, function(old)
 			local amountToRemove = 0
-			if old > 100 then
-				amountToRemove = 100
-				dataservice.server:arrayInsert(plr, { "inventory" }, {
-					Type = "Other",
-					Name = BlockName,
-					Rarity = ReplicatedStorage.Blocks[BlockName]:GetAttribute("Rarity"),
+			if old >= price then
+				amountToRemove = price
+				DataUtil.AddDataBrainrotToInventory(plr, {
+					Name = BrainrotName,
+					Level = 0,
+					Xp = 0,
 				})
 
-				dataservice.server:update(plr, { "Stock", BlockName }, function(old)
+				dataservice.server:update(plr, { "Stock", BrainrotName }, function(old)
 					return old - 1
 				end)
 			end
 			return old - amountToRemove
 		end)
+		Remotes.StockChanged:FireClient(plr, StockUtil:ReturnStockAndTime(plr))
 	end
 end
 
-function blocks.GetStock()
+function StockUtil.GetStock()
 	local memorystore = MemoryStoreService:GetHashMap("securitycfg")
 	currentStock, currentTime = memorystore:GetAsync("roll"), memorystore:GetAsync("lastupd")
 end
 
-function blocks:ReturnStockAndTime(plr)
+function StockUtil:ReturnStockAndTime(plr)
 	return dataservice.server:get(plr, { "Stock" }), currentTime
 end
 
-function blocks:Load()
+function StockUtil:Load()
 	local function playerAdded(plr)
 		dataservice.server:waitForData(plr)
 
@@ -124,33 +124,44 @@ function blocks:Load()
 		dataservice.server:set(plr, { "LastStockUpdate" }, currentTime)
 		dataservice.server:set(plr, { "Stock" }, currentStock)
 	end
-	
+
+	Remotes.GetStock.OnClientInvoke = function(plr)
+		return StockUtil:ReturnStockAndTime(plr)
+	end
+
+	Remotes.PurchaseUnit.OnClientInvoke = function(Plr, UnitName)
+		return StockUtil:PurchaseBrainrot(Plr, UnitName)
+	end
+
 	-- Player Initialization
 	Players.PlayerAdded:Connect(playerAdded)
 	for _, v in pairs(Players:GetPlayers()) do
 		playerAdded(v)
 	end
 
-	if blocks.assignAsMaster() then
-		blocks.UpdateStock()
+	if StockUtil.assignAsMaster() then
+		StockUtil.UpdateStock()
 	else
-		blocks.GetStock()
+		StockUtil.GetStock()
 	end
 
 	task.spawn(function()
 		while task.wait(1) do
 			if string.len(os.time() / TimeBetween) == string.len(os.time() // TimeBetween) then
-				require(ReplicatedStorage.NotificationHandler)(nil, "Blocks have been restocked!", true)
-				if blocks.assignAsMaster() then
-					blocks.UpdateStock()
+				if StockUtil.assignAsMaster() then
+					StockUtil.UpdateStock()
 				else
 					task.delay(0.5, function()
-						blocks.GetStock()
+						StockUtil.GetStock()
 					end)
 				end
+
+				task.delay(0.1, function()
+					Remotes.StockChanged:FireAllClients(StockUtil.GetStock())
+				end)
 			end
 		end
 	end)
 end
 
-return blocks
+return StockUtil

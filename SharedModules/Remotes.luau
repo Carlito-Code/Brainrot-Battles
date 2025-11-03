@@ -20,4 +20,6 @@ return {
 	ToggleAutoSpawn = TypedRemote.event("ToggleAutoSpawn"),
 
 	PurchaseUnit = TypedRemote.func("PurchaseUnit"),
+	StockChanged = TypedRemote.event("StockChanged"),
+	GetStock = TypedRemote.func("GetStock"),
 }
