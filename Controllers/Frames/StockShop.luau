@@ -21,11 +21,19 @@ function StockShop.HideGui(Container)
 	Animations:CloseFrame(Container)
 end
 
-function StockShop.LoadUnits(Frame: Frame)
+function StockShop.LoadUnits(Frame: Frame, newStock: { [string]: number })
     -- local inventory = DataService:get(Players.LocalPlayer, { "inventory" })
     local unitFrames = {}
 
-	for name, brainrotShopConfig in BrainrotShop do
+    for _, unitFrame in Frame.Units:GetChildren() do
+        if unitFrame:IsA("GuiObject") and unitFrame.Visible then
+            unitFrame:Destroy()
+        end
+    end
+
+    Frame.Units.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+	for brainrotName, stockAmount in newStock do
         local unitFrame = Frame.Units.Unit:Clone()
 
         unitFrame.Name = name
@@ -72,7 +80,16 @@ end
 function StockShop.Init(FramesContainer: Folder)
 	local Frame = FramesContainer:FindFirstChild("StockShop")
 
-    StockShop.LoadUnits(Frame)
+    -- Remotes.GetStock.OnClientInvoke = function(newStock)
+    --    StockShop.LoadUnits(Frame, newStock)
+    -- end
+
+    Remotes.StockChanged.OnClientEvent:Connect(function(Stock)
+        StockShop.LoadUnits(Frame, Stock)
+    end)
+
+    local initialStock, currentTime = Remotes.GetStock:InvokeServer()
+    StockShop.LoadUnits(Frame, initialStock)
 	
     task.spawn(function()
         StockShop.Update(Frame)

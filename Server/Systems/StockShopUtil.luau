@@ -76,8 +76,9 @@ function StockUtil.UpdateStock()
 		currentStock = list
 		return list
 	end, 3888000)
-	memorystore:SetAsync("lastupd", os.time(), 3888000)
-	currentTime = os.time()
+	local timeVariable = os.time()
+	memorystore:SetAsync("lastupd", timeVariable, 3888000)
+	currentTime = timeVariable
 end
 
 function StockUtil:PurchaseBrainrot(plr, BrainrotName)
@@ -107,6 +108,8 @@ end
 function StockUtil.GetStock()
 	local memorystore = MemoryStoreService:GetHashMap("securitycfg")
 	currentStock, currentTime = memorystore:GetAsync("roll"), memorystore:GetAsync("lastupd")
+
+	return currentStock, currentTime
 end
 
 function StockUtil:ReturnStockAndTime(plr)
@@ -125,11 +128,11 @@ function StockUtil:Load()
 		dataservice.server:set(plr, { "Stock" }, currentStock)
 	end
 
-	Remotes.GetStock.OnClientInvoke = function(plr)
+	Remotes.GetStock.OnServerInvoke = function(plr)
 		return StockUtil:ReturnStockAndTime(plr)
 	end
 
-	Remotes.PurchaseUnit.OnClientInvoke = function(Plr, UnitName)
+	Remotes.PurchaseUnit.OnServerInvoke = function(Plr, UnitName)
 		return StockUtil:PurchaseBrainrot(Plr, UnitName)
 	end
 
@@ -156,7 +159,10 @@ function StockUtil:Load()
 					end)
 				end
 
-				task.delay(0.1, function()
+				task.delay(0.5, function()
+					for _, v in Players:GetPlayers() do
+						playerAdded(v)
+					end
 					Remotes.StockChanged:FireAllClients(StockUtil.GetStock())
 				end)
 			end
