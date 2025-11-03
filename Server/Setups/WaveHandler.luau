@@ -175,6 +175,11 @@ function WaveHandler.StartWaveSystem(player: Player)
 				def:Restart()
 			end
 
+			player:SetAttribute("waveNumber", state.currentWave)
+			DataService.server:update(player, { "cash" }, function(old)
+				return old + 100
+			end)
+
 			-- Spawn next wave
 			WaveHandler:SpawnWave(player, state.currentWave)
 		end)
@@ -195,6 +200,7 @@ function WaveHandler.StartWaveSystem(player: Player)
 	end)
 
 	player:SetAttribute("waveInSession", true)
+	player:SetAttribute("waveNumber", state.currentWave)
 
 	-- Regenerate bases for the initial wave
 	BasesService.regenerateBases(player, state.currentWave)
@@ -223,6 +229,7 @@ function WaveHandler.StopWaveSystem(player: Player)
 	PlayerState[player] = nil
 
 	player:SetAttribute("waveInSession", false)
+	player:SetAttribute("waveNumber", 0)
 
 	print("Stopped wave system for player " .. player.Name)
 	return true, "Wave system stopped"

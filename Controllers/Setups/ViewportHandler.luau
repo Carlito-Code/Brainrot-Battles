@@ -1,8 +1,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Brainrots = require(ReplicatedStorage.Configurations.Brainrots)
+
 local ViewportHandler = {}
 
 function ViewportHandler.ProcessBrainrotViewport(viewport: ViewportFrame, brainrotName: string)
+    local brainrotInfo = Brainrots[brainrotName]
     local viewportModel = ReplicatedStorage.Assets.Brainrots:FindFirstChild(brainrotName)
     local camera
 
@@ -29,11 +32,16 @@ function ViewportHandler.ProcessBrainrotViewport(viewport: ViewportFrame, brainr
     model.Name = "Model"
     model.Parent = viewport
 
-    local height = model:GetExtentsSize().Y / 2 + 0.5
-    
-    camera.CFrame = CFrame.lookAt((model:GetPivot() * CFrame.new(-5, height, -8)).Position, model:GetPivot().Position + Vector3.new(0, 1, 0))
-    camera.CameraType = Enum.CameraType.Scriptable
-    camera.FieldOfView = 70
+    if brainrotInfo.viewportCFrame then
+        brainrotInfo.viewportCFrame(model, camera)
+    else
+        local extentsSize = model:GetExtentsSize()
+        local height = extentsSize.Y / 2 + 0.5
+        
+        camera.CFrame = CFrame.lookAt((model:GetPivot() * CFrame.new(-5, height, -extentsSize.Z / 2 - 1)).Position, model:GetPivot().Position + Vector3.new(0, 2, 0))
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.FieldOfView = 70
+    end
 end
 
 return ViewportHandler

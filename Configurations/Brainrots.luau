@@ -7,9 +7,15 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Legendary",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(8, extentsSize.Y / 3, -extentsSize.Z * 4)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 3, 0))
+			cam.FieldOfView = 50
+		end
 	},
 	BallerinaCappuccina = {
 		DisplayName = "Ballerina Cappuccina",
@@ -27,7 +33,7 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Legendary",
 		SpawnPrice = 0,
 		EnergyCost = 10,
 	},
@@ -47,7 +53,7 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Secret",
 		SpawnPrice = 0,
 		EnergyCost = 10,
 	},
@@ -60,6 +66,11 @@ local Data = {
 		Rarity = "Common",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = model.HumanoidRootPart.CFrame * CFrame.new(0, extentsSize.Y / 4, -extentsSize.Z / 2 - 2.5) * CFrame.Angles(math.rad(-5), math.rad(180), math.rad(-3))
+		end
 	},
 	LaGrandeCombination = {
 		DisplayName = "La Grande Combination",
@@ -67,7 +78,7 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Legendary",
 		SpawnPrice = 0,
 		EnergyCost = 10,
 	},
@@ -77,7 +88,7 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Rare",
 		SpawnPrice = 0,
 		EnergyCost = 10,
 	},
@@ -97,9 +108,14 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Epic",
 		SpawnPrice = 0,
 		EnergyCost = 10,
+		viewportCFrame = function(model: Model, cam: Camera)
+			local extentsSize = model:GetExtentsSize()
+
+			cam.CFrame = CFrame.lookAt((model.HumanoidRootPart.CFrame * CFrame.new(0, extentsSize.Y / 1.8, -extentsSize.Z * 1.75)).Position, model.HumanoidRootPart.Position + Vector3.new(0, 8, 0))
+		end
 	},
 	OrcaleroOrcala = {
 		DisplayName = "Orcalero Orcala",
@@ -137,7 +153,7 @@ local Data = {
 		WalkingAnimation = toAnimationString(0),
 		AttackDmg = 15,
 		Health = 100,
-		Rarity = "Common",
+		Rarity = "Rare",
 		SpawnPrice = 0,
 		EnergyCost = 10,
 	}

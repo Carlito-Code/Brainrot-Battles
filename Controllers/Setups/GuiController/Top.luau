@@ -83,6 +83,16 @@ function Top.Init(topContainer: Frame)
 		player.PlayerGui.MainGui.Bottom.DefenderSlot.Visible = true
 		player.PlayerGui.MainGui.Bottom.EnergySlot.Visible = true
 	end)
+
+	player:GetAttributeChangedSignal("waveNumber"):Connect(function()
+		local waveNumber = player:GetAttribute("waveNumber")
+
+		if waveNumber == 0 then
+			topContainer.Wave.Text = ""
+		else
+			topContainer.Wave.Text = "Wave: " .. waveNumber
+		end
+	end)
 end
 
 return Top

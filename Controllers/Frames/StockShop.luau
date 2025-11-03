@@ -1,9 +1,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 local Plots = require(script.Parent.Parent.Setups.Plots)
 local Animations = require(script.Parent.Parent.Bindings.Animations)
 local Brainrots = require(ReplicatedStorage.Configurations.Brainrots)
+local ViewportHandler = require(script.Parent.Parent.Setups.ViewportHandler)
+local BrainrotShop = require(ReplicatedStorage.Configurations.BrainrotShop)
+local Remotes = require(ReplicatedStorage.SharedModules.Remotes)
 
 local StockShop = {}
 
@@ -20,20 +22,51 @@ function StockShop.HideGui(Container)
 end
 
 function StockShop.LoadUnits(Frame: Frame)
-	for name, brainrotConfig in Brainrots do
+    -- local inventory = DataService:get(Players.LocalPlayer, { "inventory" })
+    local unitFrames = {}
+
+	for name, brainrotShopConfig in BrainrotShop do
         local unitFrame = Frame.Units.Unit:Clone()
 
         unitFrame.Name = name
-        unitFrame.Info.Title.Text = brainrotConfig.DisplayName
-        unitFrame.Info.Price.Text = brainrotConfig.SpawnPrice
+        unitFrame.Info.Title.Text = Brainrots[name].DisplayName
+        unitFrame.Info.Price.Text = "$" .. brainrotShopConfig.price
 
+        ViewportHandler.ProcessBrainrotViewport(unitFrame.Icon.ViewportFrame, name)
         unitFrame.Visible = true
 
         unitFrame.Parent = Frame.Units
+
+        unitFrame:SetAttribute("Price", brainrotShopConfig.price)
+
+        unitFrame.Button.MouseButton1Click:Connect(function()
+            print("purchasing unit")
+            local success = StockShop.PurchaseUnit(name)
+
+            if success then
+                print("Purchase successful")
+            else
+                print("Purchase failed")
+            end
+        end)
+
+        table.insert(unitFrames, unitFrame)
+    end
+
+    table.sort(unitFrames, function(a, b)
+        return a:GetAttribute("Price") < b:GetAttribute("Price")
+    end)
+
+    for index, unitFrame in unitFrames do
+        unitFrame.LayoutOrder = index
     end
 
     Frame.Units.CanvasSize = UDim2.new(0, 0, Frame.Units.UIListLayout.AbsoluteContentSize.Y/Frame.AbsoluteSize.Y + Frame.Units.UIListLayout.Padding.Scale, 0)
     Frame.Units.UIListLayout.Padding = UDim.new(Frame.Units.UIListLayout.Padding.Offset/Frame.Units.AbsoluteCanvasSize.Y, 0)
+end
+
+function StockShop.PurchaseUnit(UnitName: string)
+    return Remotes.PurchaseUnit:InvokeServer(UnitName)
 end
 
 function StockShop.Init(FramesContainer: Folder)

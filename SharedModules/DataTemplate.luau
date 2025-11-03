@@ -18,6 +18,11 @@ local Data = {
 				Level = 5,
 				Xp = 0,
 			},
+			["guid2"] = {
+				Name = "CappuccinoAssassino",
+				Level = 5,
+				Xp = 0,
+			},
 		},
 	},
 }

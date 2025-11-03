@@ -6,6 +6,7 @@ local DataService = require(ReplicatedStorage.Utilities.DataService).client
 local InventoryTypes = require(ReplicatedStorage.Types.InventoryTemplate)
 local Bottom = require(script.Parent.Parent.Setups.GuiController.Bottom)
 local ViewportHandler = require(script.Parent.Parent.Setups.ViewportHandler)
+local Brainrots = require(ReplicatedStorage.Configurations.Brainrots)
 
 local Inventory = {}
 
@@ -19,6 +20,17 @@ local function setupConnections(frame: Frame)
 			dataBrainrot = dataBrainrot,
 		})
 	end
+
+	DataService:getChangedSignal({ "inventory" }):Connect(function(newValue)
+		for guid, dataBrainrot in newValue do
+			if not frame.Container:FindFirstChild(guid) then
+				Inventory.AddSlot(frame, {
+					guid = guid,
+					dataBrainrot = dataBrainrot,
+				})
+			end
+		end
+	end)
 
 	DataService:getChangedSignal({ "equipped" }):Connect(function()
 		frame.Background.Equipped.Text = "Equipped: " .. Inventory.GetNumberOfEquippedBrainrots() .. "/4"
@@ -35,8 +47,8 @@ end
 function Inventory.AddSlot(frame: Frame, entry: InventoryTypes.DataBrainrotInventoryEntry)
 	local slot = frame.Container.SlotTemplate:Clone()
 
-	slot.Lvl.Text = entry.dataBrainrot.Level
-	slot.NameLabel.Text = entry.dataBrainrot.Name
+	slot.Lvl.Text = "Lvl " .. entry.dataBrainrot.Level
+	slot.NameLabel.Text = Brainrots[entry.dataBrainrot.Name].DisplayName
 
 	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, entry.dataBrainrot.Name)
 
@@ -58,12 +70,9 @@ end
 function Inventory.EquipBrainrot(guid: string)
 	local player = _Players.LocalPlayer
 	local bottomContainer = player.PlayerGui.MainGui.Bottom.Slots
-	local inventoryFrame = player.PlayerGui.MainGui.Frames.Inventory
-	local slot = bottomContainer:FindFirstChild("Slot_" .. Bottom.NextEquippableSlot)
+	local slot = Bottom.GetNextEmptySlot(bottomContainer)
 
 	local oldGuid = slot:GetAttribute("BrainrotGUID")
-
-	--slot.Checkmark.Visible = true
 
 	Bottom.ProcessEquippedBrainrot(guid)
 
@@ -85,8 +94,6 @@ function Inventory.UnequipBrainrot(guid: string)
 	if not slot then
 		return
 	end
-
-	Bottom.NextEquippableSlot = tonumber(slot.name:match("%d"))
 
 	slot.Level.Text = ""
 	slot.EnergyAmount.Text = ""

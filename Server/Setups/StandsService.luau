@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DataService = require(ReplicatedStorage.Utilities.DataService)
 local PlotService = require("./PlotService")
 local Signals = require(ReplicatedStorage.SharedModules.Signals)
+local Brainrots = require(ReplicatedStorage.Configurations.Brainrots)
 
 local BrainrotAssets = ReplicatedStorage.Assets.Brainrots
 
@@ -54,6 +55,25 @@ function StandsService.LoadStand(BrainrotId, Player)
 			local clone: Model = brainrot:Clone()
 			clone.Parent = Stand
 			clone:PivotTo(Stand.CFrame * CFrame.new(0, clone:GetExtentsSize().Y / 2 + 0.5, 0))
+
+			local brainrotInfo = Brainrots[informations.Name]
+
+			local nameLabelBillboard = ReplicatedStorage.Assets.NameLabelBillboard:Clone()
+
+			nameLabelBillboard.UnitName.Text = brainrotInfo.DisplayName
+			nameLabelBillboard.Rarity.Text = brainrotInfo.Rarity
+			nameLabelBillboard.Level.Text = "Lvl " .. informations.Level
+
+			local rarityGradient = ReplicatedStorage.Assets.RarityGradients[brainrotInfo.Rarity]:Clone()
+			rarityGradient.Parent = nameLabelBillboard.Rarity
+
+			nameLabelBillboard.Adornee = clone.HumanoidRootPart
+
+			local modelSize = clone:GetExtentsSize()
+			nameLabelBillboard.ExtentsOffset = Vector3.new(0, modelSize.Y / 2 + 0.5, 0)
+			nameLabelBillboard.Parent = clone.HumanoidRootPart
+
+			Stand:SetAttribute("BrainrotGUID", BrainrotId)
 		else
 			warn("Brainrot model could not be found")
 		end
@@ -64,6 +84,7 @@ function StandsService.LoadStand(BrainrotId, Player)
 	end
 end
 
+-- don't use this function
 function StandsService.EquipBrainrot(Player, BrainrotId)
 	DataService.server:update(Player, "inventory", function(old)
 		local cloned = table.clone(old)
@@ -79,9 +100,20 @@ function StandsService.Init()
 	Signals.CLAIMED_PLOT:Connect(function(Player, Plot)
 		DataService.server:waitForData(Player)
 		local currentlyEquipped = DataService.server:get(Player, "equipped")
-		for id, informations in currentlyEquipped do
+		for id, _ in currentlyEquipped do
 			StandsService.LoadStand(id, Player)
 		end
+
+		DataService.server:getChangedSignal(Player, "equipped"):Connect(function(newlyEquippedBrainrots)
+			local PlayerPlot = PlotService.getPlot(Player)
+			local Container = PlayerPlot:FindFirstChild("BrainrotEquipSpawns")
+
+			-- for _, Stand in Container:GetChildren() do
+			-- 	local brainrotGUID = Stand:GetAttribute("BrainrotGUID")
+			-- 	if not newlyEquippedBrainrots[brainrotGUID] then
+					
+			-- 	end
+		end)
 	end)
 end
 

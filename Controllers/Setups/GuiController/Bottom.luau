@@ -4,10 +4,7 @@ local DataService = require(game.ReplicatedStorage.Utilities.DataService).client
 local BrainrotConfigurations = require(game.ReplicatedStorage.Configurations.Brainrots)
 local ViewportHandler = require(script.Parent.Parent.ViewportHandler)
 
-local Bottom = {
-	NextEquippableSlot = 1,
-}
-
+local Bottom = {}
 local spawnDebounceTime = 1
 local spawnDebounce = false
 
@@ -16,7 +13,7 @@ function Bottom.ProcessEquippedBrainrot(guid: string)
 	
 	local player = game.Players.LocalPlayer
 	local bottomContainer = player.PlayerGui.MainGui.Bottom.Slots
-	local slot = bottomContainer:FindFirstChild("Slot_" .. Bottom.NextEquippableSlot)
+	local slot = Bottom.GetNextEmptySlot(bottomContainer)
 
 	slot.Level.Text = "Level " .. newlyEquippedBrainrot.Level
 	slot.EnergyAmount.Text = BrainrotConfigurations[newlyEquippedBrainrot.Name].EnergyCost
@@ -24,18 +21,25 @@ function Bottom.ProcessEquippedBrainrot(guid: string)
 	slot:SetAttribute("BrainrotGUID", guid)
 
 	ViewportHandler.ProcessBrainrotViewport(slot.ViewportFrame, newlyEquippedBrainrot.Name)
-
-	Bottom.NextEquippableSlot += 1
-
-	if Bottom.NextEquippableSlot > 4 then
-		Bottom.NextEquippableSlot = 1
-	end
-
 	-- Handling this logic here since this function is called when loading the equipped brainrots
 	local inventorySlot = player.PlayerGui.MainGui.Frames.Inventory.Container:FindFirstChild(guid)
 	if inventorySlot then
 		inventorySlot.Checkmark.Visible = true
 	end
+end
+
+function Bottom.GetNextEmptySlot(equipBarContainer: Frame)
+	for _, slot in equipBarContainer:GetChildren() do
+		if slot.Name:find("Slot_") then
+			local guid = slot:GetAttribute("BrainrotGUID")
+
+			if not guid or guid == "" then
+				return slot
+			end
+		end
+	end
+
+	return equipBarContainer.Slot_1
 end
 
 function Bottom.Init(bottomContainer: Frame)

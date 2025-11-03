@@ -70,9 +70,21 @@ function guiHandler.init()
 		end
 	end
 
+	DataService:getChangedSignal({ "cash" }):Connect(function(newValue)
+		guiHandler.updateCash(newValue)
+	end)
+
+	guiHandler.updateCash(DataService:get({ "cash" }))
+
 	bottom.Init(gui.Bottom)
 	top.Init(gui.Top)
 	plots.Init()
+end
+
+function guiHandler.updateCash(newValue: number)
+	local left, num, right = string.match(tostring(newValue), '^([^%d]*%d)(%d*)(.-)$')
+
+    gui.Cash.Text = "$" .. left..(num:reverse():gsub('(%d%d%d)', '%1,'):reverse())..right
 end
 
 return guiHandler
